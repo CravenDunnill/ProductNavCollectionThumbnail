@@ -1,0 +1,107 @@
+<?php
+/** @var \CravenDunnill\ProductNavCollectionThumbnail\Block\Product\View\CollectionNavigation $block */
+$collectionName = $block->getCollectionName();
+$collectionProducts = $block->getCollectionProducts();
+$currentProduct = $block->getCurrentProduct();
+
+// Sort displayed products (including current product) alphabetically by tile_colour_name
+$allProducts = [$currentProduct];
+foreach ($collectionProducts as $product) {
+	$allProducts[] = $product;
+}
+
+// Custom sort function to organize products by tile_colour_name alphabetically
+usort($allProducts, function($a, $b) use ($block) {
+	$colorA = $block->getColorName($a);
+	$colorB = $block->getColorName($b);
+	return strcmp($colorA, $colorB);
+});
+
+if ($collectionName):
+?>
+<div id="product-collection-navigation" class="product-collection-navigation">
+	<div class="collection-title">
+		<h3><?= $block->escapeHtml($collectionName) ?> Collection</h3>
+	</div>
+	
+	<div class="collection-products-container">
+		<div class="collection-products">
+			<?php foreach ($allProducts as $product): ?>
+				<?php 
+				$isCurrent = $product->getId() == $currentProduct->getId();
+				$colorName = $block->getColorName($product);
+				?>
+				<div class="collection-product-item <?= $isCurrent ? 'current-product' : '' ?>">
+					<?php if ($isCurrent): ?>
+						<div class="product-item-wrapper">
+							<img src="<?= $block->escapeUrl($block->getProductImageUrl($product)) ?>" 
+								 alt="<?= $block->escapeHtmlAttr($product->getName()) ?>"
+								 class="collection-product-image" />
+							<span class="collection-product-color-name"><?= $block->escapeHtml($colorName) ?></span>
+						</div>
+					<?php else: ?>
+						<a href="<?= $block->escapeUrl($product->getProductUrl()) ?>" title="<?= $block->escapeHtmlAttr($product->getName()) ?>">
+							<img src="<?= $block->escapeUrl($block->getProductImageUrl($product)) ?>" 
+								 alt="<?= $block->escapeHtmlAttr($product->getName()) ?>"
+								 class="collection-product-image" />
+							<span class="collection-product-color-name"><?= $block->escapeHtml($colorName) ?></span>
+						</a>
+					<?php endif; ?>
+				</div>
+			<?php endforeach; ?>
+		</div>
+	</div>
+</div>
+
+<script type="text/javascript">
+require(['jquery'], function($) {
+	$(document).ready(function() {
+		// Enable horizontal scrolling with mouse drag
+		const slider = document.querySelector('.collection-products');
+		
+		if (slider) {
+			let isDown = false;
+			let startX;
+			let scrollLeft;
+
+			slider.addEventListener('mousedown', (e) => {
+				isDown = true;
+				slider.classList.add('active');
+				startX = e.pageX - slider.offsetLeft;
+				scrollLeft = slider.scrollLeft;
+			});
+
+			slider.addEventListener('mouseleave', () => {
+				isDown = false;
+				slider.classList.remove('active');
+			});
+
+			slider.addEventListener('mouseup', () => {
+				isDown = false;
+				slider.classList.remove('active');
+			});
+
+			slider.addEventListener('mousemove', (e) => {
+				if (!isDown) return;
+				e.preventDefault();
+				const x = e.pageX - slider.offsetLeft;
+				const walk = (x - startX) * 2;
+				slider.scrollLeft = scrollLeft - walk;
+			});
+			
+			// Auto-scroll to the current product (with a slight delay to ensure DOM is ready)
+			setTimeout(function() {
+				const currentProduct = document.querySelector('.collection-product-item.current-product');
+				if (currentProduct) {
+					const containerWidth = slider.offsetWidth;
+					const currentProductOffset = currentProduct.offsetLeft;
+					
+					// Center the current product in the viewport
+					slider.scrollLeft = currentProductOffset - (containerWidth / 2) + (currentProduct.offsetWidth / 2);
+				}
+			}, 300);
+		}
+	});
+});
+</script>
+<?php endif; ?>

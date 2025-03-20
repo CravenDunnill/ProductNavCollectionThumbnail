@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	  xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+	<head>
+		<css src="CravenDunnill_ProductNavCollectionThumbnail::css/collection_navigation.css"/>
+	</head>
+	<body>
+		<referenceContainer name="product.info.main">
+			<block class="CravenDunnill\ProductNavCollectionThumbnail\Block\Product\View\CollectionNavigation" 
+				   name="product.collection.navigation" 
+				   template="CravenDunnill_ProductNavCollectionThumbnail::product/collection_navigation.phtml" 
+				   after="product.info.price" />
+		</referenceContainer>
+	</body>
+</page>
