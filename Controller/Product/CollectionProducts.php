@@ -7,6 +7,7 @@ use Magento\Framework\Controller\Result\JsonFactory;
 use CravenDunnill\ProductNavCollectionThumbnail\Helper\Data;
 use Magento\Catalog\Helper\Image;
 use Magento\Store\Model\StoreManagerInterface;
+use Magento\Catalog\Model\Product\Type;
 
 class CollectionProducts extends Action
 {
@@ -73,6 +74,11 @@ class CollectionProducts extends Action
 		$productData = [];
 		
 		foreach ($products as $product) {
+			// Only include simple products
+			if ($product->getTypeId() !== Type::TYPE_SIMPLE) {
+				continue;
+			}
+			
 			$productData[] = [
 				'id' => $product->getId(),
 				'name' => $product->getName(),
@@ -81,7 +87,8 @@ class CollectionProducts extends Action
 					->setImageFile($product->getSmallImage())
 					->resize(100, 100)
 					->getUrl(),
-				'color_name' => $product->getTileColourName()
+				'color_name' => $product->getTileColourName(),
+				'tile_size' => $product->getTileSize()
 			];
 		}
 		

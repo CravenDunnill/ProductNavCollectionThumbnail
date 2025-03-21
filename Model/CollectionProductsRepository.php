@@ -64,6 +64,7 @@ class CollectionProductsRepository
 			->addAttributeToFilter('entity_id', ['neq' => $currentProductId])
 			->addAttributeToFilter('status', ['in' => $this->productStatus->getVisibleStatusIds()])
 			->addAttributeToFilter('visibility', ['in' => $this->productVisibility->getVisibleInSiteIds()])
+			->addAttributeToFilter('type_id', \Magento\Catalog\Model\Product\Type::TYPE_SIMPLE)
 			->addAttributeToSort('tile_colour_name', 'ASC')
 			->setPageSize($limit)
 			->setCurPage(1);

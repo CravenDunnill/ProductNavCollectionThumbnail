@@ -8,6 +8,9 @@
 				<a data-bind="attr: { href: url, title: name }">
 					<img class="collection-product-image" data-bind="attr: { src: image, alt: name }" />
 					<span class="collection-product-color-name" data-bind="text: colorName"></span>
+					<!-- ko if: tileSize -->
+					<span class="collection-product-size" data-bind="text: tileSize"></span>
+					<!-- /ko -->
 				</a>
 			</div>
 		</div>

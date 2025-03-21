@@ -9,7 +9,8 @@
 			<block class="CravenDunnill\ProductNavCollectionThumbnail\Block\Product\View\CollectionNavigation" 
 				   name="product.collection.navigation" 
 				   template="CravenDunnill_ProductNavCollectionThumbnail::product/collection_navigation.phtml" 
-				   after="product.info.price" />
+				   before="-"
+			/>
 		</referenceContainer>
 	</body>
 </page>

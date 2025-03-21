@@ -78,17 +78,11 @@ class Data extends AbstractHelper
 			->addAttributeToFilter('status', ['in' => $this->productStatus->getVisibleStatusIds()])
 			->addAttributeToFilter('visibility', ['in' => $this->productVisibility->getVisibleInSiteIds()]);
 		
-		// Include all product types that might have the collection attribute
+		// Only include simple products, excluding configurables
 		$collection->addAttributeToFilter(
 			'type_id',
 			[
-				'in' => [
-					\Magento\Catalog\Model\Product\Type::TYPE_SIMPLE,
-					\Magento\Catalog\Model\Product\Type::TYPE_VIRTUAL,
-					\Magento\ConfigurableProduct\Model\Product\Type\Configurable::TYPE_CODE,
-					\Magento\GroupedProduct\Model\Product\Type\Grouped::TYPE_CODE,
-					\Magento\Bundle\Model\Product\Type::TYPE_CODE
-				]
+				'eq' => \Magento\Catalog\Model\Product\Type::TYPE_SIMPLE
 			]
 		);
 		

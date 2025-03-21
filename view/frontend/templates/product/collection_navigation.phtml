@@ -4,20 +4,27 @@ $collectionName = $block->getCollectionName();
 $collectionProducts = $block->getCollectionProducts();
 $currentProduct = $block->getCurrentProduct();
 
-// Sort displayed products (including current product) alphabetically by tile_colour_name
-$allProducts = [$currentProduct];
+// Prepare array for all products we'll display
+$displayProducts = [];
+
+// Only include current product if it's a simple product
+if ($currentProduct && $currentProduct->getTypeId() === \Magento\Catalog\Model\Product\Type::TYPE_SIMPLE) {
+	$displayProducts[] = $currentProduct;
+}
+
+// Add all other simple products from collection
 foreach ($collectionProducts as $product) {
-	$allProducts[] = $product;
+	$displayProducts[] = $product;
 }
 
 // Custom sort function to organize products by tile_colour_name alphabetically
-usort($allProducts, function($a, $b) use ($block) {
+usort($displayProducts, function($a, $b) use ($block) {
 	$colorA = $block->getColorName($a);
 	$colorB = $block->getColorName($b);
 	return strcmp($colorA, $colorB);
 });
 
-if ($collectionName):
+if ($collectionName && !empty($displayProducts)):
 ?>
 <div id="product-collection-navigation" class="product-collection-navigation">
 	<div class="collection-title">
@@ -26,18 +33,28 @@ if ($collectionName):
 	
 	<div class="collection-products-container">
 		<div class="collection-products">
-			<?php foreach ($allProducts as $product): ?>
+			<?php foreach ($displayProducts as $product): ?>
 				<?php 
 				$isCurrent = $product->getId() == $currentProduct->getId();
 				$colorName = $block->getColorName($product);
 				?>
 				<div class="collection-product-item <?= $isCurrent ? 'current-product' : '' ?>">
+					<?php 
+					// Get tile size attribute text
+					$tileSize = '';
+					if ($product->getTileSize()) {
+						$tileSize = $block->getAttributeOptionText('tile_size', $product->getTileSize());
+					}
+					?>
 					<?php if ($isCurrent): ?>
 						<div class="product-item-wrapper">
 							<img src="<?= $block->escapeUrl($block->getProductImageUrl($product)) ?>" 
 								 alt="<?= $block->escapeHtmlAttr($product->getName()) ?>"
 								 class="collection-product-image" />
 							<span class="collection-product-color-name"><?= $block->escapeHtml($colorName) ?></span>
+							<?php if ($tileSize): ?>
+							<span class="collection-product-size"><?= $block->escapeHtml($tileSize) ?></span>
+							<?php endif; ?>
 						</div>
 					<?php else: ?>
 						<a href="<?= $block->escapeUrl($product->getProductUrl()) ?>" title="<?= $block->escapeHtmlAttr($product->getName()) ?>">
@@ -45,6 +62,9 @@ if ($collectionName):
 								 alt="<?= $block->escapeHtmlAttr($product->getName()) ?>"
 								 class="collection-product-image" />
 							<span class="collection-product-color-name"><?= $block->escapeHtml($colorName) ?></span>
+							<?php if ($tileSize): ?>
+							<span class="collection-product-size"><?= $block->escapeHtml($tileSize) ?></span>
+							<?php endif; ?>
 						</a>
 					<?php endif; ?>
 				</div>
