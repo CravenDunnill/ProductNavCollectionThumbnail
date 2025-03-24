@@ -32,7 +32,13 @@ if ($collectionName && !empty($displayProducts)):
 	</div>
 	
 	<div class="collection-products-container">
-		<div class="collection-products">
+		<div class="collection-nav-arrow prev" id="scroll-prev">
+			<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+				<path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"/>
+			</svg>
+		</div>
+		
+		<div class="collection-products" id="collection-slider">
 			<?php foreach ($displayProducts as $product): ?>
 				<?php 
 				$isCurrent = $product->getId() == $currentProduct->getId();
@@ -70,58 +76,156 @@ if ($collectionName && !empty($displayProducts)):
 				</div>
 			<?php endforeach; ?>
 		</div>
+		
+		<div class="collection-nav-arrow next" id="scroll-next">
+			<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+				<path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z"/>
+			</svg>
+		</div>
 	</div>
 </div>
 
 <script type="text/javascript">
-require(['jquery'], function($) {
-	$(document).ready(function() {
-		// Enable horizontal scrolling with mouse drag
-		const slider = document.querySelector('.collection-products');
+document.addEventListener('DOMContentLoaded', function() {
+	// Get the elements
+	const slider = document.getElementById('collection-slider');
+	const prevBtn = document.getElementById('scroll-prev');
+	const nextBtn = document.getElementById('scroll-next');
+	
+	if (!slider || !prevBtn || !nextBtn) return;
+	
+	// Variables for drag scrolling
+	let isDown = false;
+	let startX;
+	let scrollLeft;
+	
+	// Scroll distance per click (in pixels)
+	const scrollDistance = 200;
+	
+	// Check if scrolling is needed and update button states
+	function updateButtonStates() {
+		const isScrollable = slider.scrollWidth > slider.clientWidth;
 		
-		if (slider) {
-			let isDown = false;
-			let startX;
-			let scrollLeft;
-
-			slider.addEventListener('mousedown', (e) => {
-				isDown = true;
-				slider.classList.add('active');
-				startX = e.pageX - slider.offsetLeft;
-				scrollLeft = slider.scrollLeft;
-			});
-
-			slider.addEventListener('mouseleave', () => {
-				isDown = false;
-				slider.classList.remove('active');
-			});
-
-			slider.addEventListener('mouseup', () => {
-				isDown = false;
-				slider.classList.remove('active');
-			});
-
-			slider.addEventListener('mousemove', (e) => {
-				if (!isDown) return;
-				e.preventDefault();
-				const x = e.pageX - slider.offsetLeft;
-				const walk = (x - startX) * 2;
-				slider.scrollLeft = scrollLeft - walk;
-			});
-			
-			// Auto-scroll to the current product (with a slight delay to ensure DOM is ready)
-			setTimeout(function() {
-				const currentProduct = document.querySelector('.collection-product-item.current-product');
-				if (currentProduct) {
-					const containerWidth = slider.offsetWidth;
-					const currentProductOffset = currentProduct.offsetLeft;
-					
-					// Center the current product in the viewport
-					slider.scrollLeft = currentProductOffset - (containerWidth / 2) + (currentProduct.offsetWidth / 2);
-				}
-			}, 300);
+		// Always show both buttons
+		prevBtn.style.display = 'flex';
+		nextBtn.style.display = 'flex';
+		
+		// Update disabled state instead of hiding
+		if (slider.scrollLeft <= 0) {
+			prevBtn.classList.add('disabled');
+		} else {
+			prevBtn.classList.remove('disabled');
 		}
+		
+		if (slider.scrollLeft + slider.clientWidth >= slider.scrollWidth - 5) {
+			nextBtn.classList.add('disabled');
+		} else {
+			nextBtn.classList.remove('disabled');
+		}
+	}
+	
+	// Scroll left button click
+	prevBtn.addEventListener('click', function(e) {
+		e.preventDefault();
+		slider.scrollBy({
+			left: -scrollDistance,
+			behavior: 'smooth'
+		});
+		setTimeout(updateButtonStates, 100); // Update after scroll animation
 	});
+	
+	// Scroll right button click
+	nextBtn.addEventListener('click', function(e) {
+		e.preventDefault();
+		slider.scrollBy({
+			left: scrollDistance,
+			behavior: 'smooth'
+		});
+		setTimeout(updateButtonStates, 100); // Update after scroll animation
+	});
+	
+	// Mouse drag to scroll
+	slider.addEventListener('mousedown', function(e) {
+		isDown = true;
+		slider.classList.add('active');
+		startX = e.pageX - slider.offsetLeft;
+		scrollLeft = slider.scrollLeft;
+		// Prevent text selection during drag
+		e.preventDefault();
+	});
+	
+	slider.addEventListener('mouseleave', function() {
+		isDown = false;
+		slider.classList.remove('active');
+	});
+	
+	slider.addEventListener('mouseup', function() {
+		isDown = false;
+		slider.classList.remove('active');
+		updateButtonStates();
+	});
+	
+	slider.addEventListener('mousemove', function(e) {
+		if (!isDown) return;
+		e.preventDefault();
+		const x = e.pageX - slider.offsetLeft;
+		const walk = (x - startX) * 2; // Scroll speed multiplier
+		slider.scrollLeft = scrollLeft - walk;
+		updateButtonStates();
+	});
+	
+	// Touch events for mobile
+	slider.addEventListener('touchstart', function(e) {
+		isDown = true;
+		slider.classList.add('active');
+		startX = e.touches[0].pageX - slider.offsetLeft;
+		scrollLeft = slider.scrollLeft;
+	});
+	
+	slider.addEventListener('touchend', function() {
+		isDown = false;
+		slider.classList.remove('active');
+		updateButtonStates();
+	});
+	
+	slider.addEventListener('touchmove', function(e) {
+		if (!isDown) return;
+		const x = e.touches[0].pageX - slider.offsetLeft;
+		const walk = (x - startX) * 2;
+		slider.scrollLeft = scrollLeft - walk;
+		updateButtonStates();
+	});
+	
+	// Listen for scroll events
+	slider.addEventListener('scroll', function() {
+		updateButtonStates();
+	});
+	
+	// Listen for window resize
+	window.addEventListener('resize', function() {
+		updateButtonStates();
+	});
+	
+	// Center current product on load
+	function centerCurrentProduct() {
+		const currentProduct = document.querySelector('.collection-product-item.current-product');
+		if (currentProduct) {
+			const containerWidth = slider.offsetWidth;
+			const currentProductOffset = currentProduct.offsetLeft;
+			
+			// Center the current product in the viewport
+			slider.scrollLeft = currentProductOffset - (containerWidth / 2) + (currentProduct.offsetWidth / 2);
+			
+			// Update button states after scrolling
+			updateButtonStates();
+		}
+	}
+	
+	// Initialize after a short delay to ensure elements are properly sized
+	setTimeout(function() {
+		updateButtonStates();
+		centerCurrentProduct();
+	}, 300);
 });
 </script>
 <?php endif; ?>

@@ -1,4 +1,9 @@
-.product-collection-navigation {}
+.product-collection-navigation {
+	max-width: 608px;
+	width: 100%;
+	margin-bottom: 20px;
+	box-sizing: border-box;
+}
 
 .collection-title h3 {
 	margin-top: 0;
@@ -9,15 +14,33 @@
 
 .collection-products-container {
 	position: relative;
+	width: 100%;
+	max-width: 100%;
+	display: flex;
+	align-items: center;
 }
 
 .collection-products {
 	display: flex;
 	flex-wrap: nowrap;
 	overflow-x: auto;
+	-webkit-overflow-scrolling: touch; /* Smooth scrolling for iOS */
+	scrollbar-width: thin;
 	gap: 15px;
 	padding: 5px 0;
-	scrollbar-width: thin;
+	width: calc(100% - 70px); /* Make room for arrows */
+	max-width: calc(100% - 70px);
+	/* Hide scrollbar but keep functionality */
+	-ms-overflow-style: none; /* IE and Edge */
+	scrollbar-width: none; /* Firefox */
+	box-sizing: border-box;
+	scroll-behavior: smooth;
+	margin: 0 auto;
+}
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+.collection-products::-webkit-scrollbar {
+	display: none;
 }
 
 .collection-products.active {
@@ -89,4 +112,58 @@
 
 .collection-product-item.current-product .collection-product-size {
 	color: #666666;
+}
+
+/* Navigation arrows */
+.collection-nav-arrow {
+	position: relative;
+	width: 30px;
+	height: 30px;
+	background: rgba(255, 255, 255, 0.9);
+	border-radius: 50%;
+	border: 1px solid #e8e8e8;
+	display: flex;
+	flex: 0 0 30px;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	z-index: 2;
+	box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+	transition: all 0.2s ease;
+	margin: 0 5px;
+}
+
+.collection-nav-arrow.prev {
+	order: 0;
+}
+
+.collection-nav-arrow.next {
+	order: 2;
+}
+
+.collection-nav-arrow:hover {
+	background: rgba(255, 255, 255, 1);
+	border-color: #ff5501;
+}
+
+.collection-nav-arrow.disabled {
+	opacity: 0.3;
+	cursor: default;
+	pointer-events: none;
+}
+
+/* For small screens adjust spacing */
+@media screen and (max-width: 480px) {
+	.collection-products {
+		gap: 10px;
+	}
+	
+	.collection-product-item {
+		width: 80px;
+	}
+	
+	.collection-product-image {
+		width: 80px;
+		height: 80px;
+	}
 }
