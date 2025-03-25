@@ -17,12 +17,47 @@ foreach ($collectionProducts as $product) {
 	$displayProducts[] = $product;
 }
 
-// Custom sort function to organize products by tile_colour_name alphabetically
-usort($displayProducts, function($a, $b) use ($block) {
-	$colorA = $block->getColorName($a);
-	$colorB = $block->getColorName($b);
-	return strcmp($colorA, $colorB);
+// Group products by color
+$productsByColor = [];
+$colorOptions = [];
+
+foreach ($displayProducts as $product) {
+	$colorId = $product->getTileColourName();
+	$colorName = $block->getColorName($product);
+	
+	// Create a unique key for the color
+	if (!isset($productsByColor[$colorId])) {
+		$productsByColor[$colorId] = [
+			'colorName' => $colorName,
+			'colorId' => $colorId,
+			'products' => []
+		];
+		
+		// Track unique colors for the first row
+		$colorOptions[$colorId] = [
+			'id' => $colorId,
+			'name' => $colorName,
+			'isSelected' => false
+		];
+	}
+	
+	// Add product to the color group
+	$productsByColor[$colorId]['products'][] = $product;
+}
+
+// Sort colors alphabetically
+uasort($productsByColor, function($a, $b) {
+	return strcmp($a['colorName'], $b['colorName']);
 });
+
+// Determine current color
+$currentColorId = null;
+if ($currentProduct) {
+	$currentColorId = $currentProduct->getTileColourName();
+	if (isset($colorOptions[$currentColorId])) {
+		$colorOptions[$currentColorId]['isSelected'] = true;
+	}
+}
 
 if ($collectionName && !empty($displayProducts)):
 ?>
@@ -31,68 +66,140 @@ if ($collectionName && !empty($displayProducts)):
 		<h3><?= $block->escapeHtml($collectionName) ?> Collection</h3>
 	</div>
 	
+	<!-- Color options row -->
+	<div class="collection-row-label">Colors:</div>
 	<div class="collection-products-container">
-		<div class="collection-nav-arrow prev" id="scroll-prev">
+		<div class="collection-nav-arrow prev" id="color-scroll-prev">
 			<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
 				<path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"/>
 			</svg>
 		</div>
 		
-		<div class="collection-products" id="collection-slider">
-			<?php foreach ($displayProducts as $product): ?>
+		<div class="collection-products color-options" id="color-slider">
+			<?php foreach ($productsByColor as $colorId => $colorGroup): ?>
 				<?php 
-				$isCurrent = $product->getId() == $currentProduct->getId();
-				$colorName = $block->getColorName($product);
+				$isCurrentColor = ($colorId == $currentColorId);
+				$firstProduct = reset($colorGroup['products']);
 				?>
-				<div class="collection-product-item <?= $isCurrent ? 'current-product' : '' ?>">
-					<?php 
-					// Get tile size attribute text
-					$tileSize = '';
-					if ($product->getTileSize()) {
-						$tileSize = $block->getAttributeOptionText('tile_size', $product->getTileSize());
-					}
-					?>
+				<div class="collection-product-item color-item <?= $isCurrentColor ? 'current-product' : '' ?>" 
+					 data-color-id="<?= $block->escapeHtmlAttr($colorId) ?>">
+					<a href="javascript:void(0);" class="color-selector" 
+					   data-color-id="<?= $block->escapeHtmlAttr($colorId) ?>">
+						<img src="<?= $block->escapeUrl($block->getProductImageUrl($firstProduct)) ?>" 
+							 alt="<?= $block->escapeHtmlAttr($colorGroup['colorName']) ?>"
+							 class="collection-product-image" />
+						<span class="collection-product-color-name"><?= $block->escapeHtml($colorGroup['colorName']) ?></span>
+					</a>
+				</div>
+			<?php endforeach; ?>
+		</div>
+		
+		<div class="collection-nav-arrow next" id="color-scroll-next">
+			<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+				<path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z"/>
+			</svg>
+		</div>
+	</div>
+	
+	<!-- Size options row -->
+	<div class="collection-row-label">Sizes:</div>
+	<div class="collection-products-container">
+		<div class="collection-nav-arrow prev" id="size-scroll-prev">
+			<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+				<path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"/>
+			</svg>
+		</div>
+		
+		<div class="collection-products size-options" id="size-slider">
+			<?php 
+			// Start with the sizes for the current color
+			$sizesToShow = [];
+			if ($currentColorId && isset($productsByColor[$currentColorId])) {
+				$sizesToShow = $productsByColor[$currentColorId]['products'];
+			} elseif (!empty($productsByColor)) {
+				// If no current color, show sizes for the first color
+				$firstColor = reset($productsByColor);
+				$sizesToShow = $firstColor['products'];
+				$currentColorId = key($productsByColor);
+			}
+			
+			// Sort by size
+			usort($sizesToShow, function($a, $b) use ($block) {
+				$sizeA = $a->getTileSize();
+				$sizeB = $b->getTileSize();
+				return strcmp($sizeA, $sizeB);
+			});
+			
+			foreach ($sizesToShow as $product):
+				$isCurrent = $product->getId() == $currentProduct->getId();
+				$tileSize = $block->getAttributeOptionText('tile_size', $product->getTileSize());
+			?>
+				<div class="collection-product-item size-item <?= $isCurrent ? 'current-product' : '' ?>" 
+					 data-color-id="<?= $block->escapeHtmlAttr($product->getTileColourName()) ?>"
+					 data-size-id="<?= $block->escapeHtmlAttr($product->getTileSize()) ?>">
 					<?php if ($isCurrent): ?>
 						<div class="product-item-wrapper">
 							<img src="<?= $block->escapeUrl($block->getProductImageUrl($product)) ?>" 
 								 alt="<?= $block->escapeHtmlAttr($product->getName()) ?>"
 								 class="collection-product-image" />
-							<span class="collection-product-color-name"><?= $block->escapeHtml($colorName) ?></span>
-							<?php if ($tileSize): ?>
 							<span class="collection-product-size"><?= $block->escapeHtml($tileSize) ?></span>
-							<?php endif; ?>
 						</div>
 					<?php else: ?>
 						<a href="<?= $block->escapeUrl($product->getProductUrl()) ?>" title="<?= $block->escapeHtmlAttr($product->getName()) ?>">
 							<img src="<?= $block->escapeUrl($block->getProductImageUrl($product)) ?>" 
 								 alt="<?= $block->escapeHtmlAttr($product->getName()) ?>"
 								 class="collection-product-image" />
-							<span class="collection-product-color-name"><?= $block->escapeHtml($colorName) ?></span>
-							<?php if ($tileSize): ?>
 							<span class="collection-product-size"><?= $block->escapeHtml($tileSize) ?></span>
-							<?php endif; ?>
 						</a>
 					<?php endif; ?>
 				</div>
 			<?php endforeach; ?>
 		</div>
 		
-		<div class="collection-nav-arrow next" id="scroll-next">
+		<div class="collection-nav-arrow next" id="size-scroll-next">
 			<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
 				<path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z"/>
 			</svg>
 		</div>
+	</div>
+	
+	<!-- Hidden container for all product data -->
+	<div id="collection-products-data" style="display: none;" 
+		 data-current-color="<?= $block->escapeHtmlAttr($currentColorId) ?>">
+		<?php foreach ($productsByColor as $colorId => $colorGroup): ?>
+			<div class="color-data" data-color-id="<?= $block->escapeHtmlAttr($colorId) ?>">
+				<?php foreach ($colorGroup['products'] as $product): ?>
+					<?php 
+					$tileSize = $block->getAttributeOptionText('tile_size', $product->getTileSize());
+					$isCurrent = $product->getId() == $currentProduct->getId();
+					?>
+					<div class="product-data" 
+						 data-product-id="<?= $block->escapeHtmlAttr($product->getId()) ?>"
+						 data-size-id="<?= $block->escapeHtmlAttr($product->getTileSize()) ?>"
+						 data-size-name="<?= $block->escapeHtmlAttr($tileSize) ?>"
+						 data-product-url="<?= $block->escapeUrl($product->getProductUrl()) ?>"
+						 data-product-name="<?= $block->escapeHtmlAttr($product->getName()) ?>"
+						 data-product-image="<?= $block->escapeUrl($block->getProductImageUrl($product)) ?>"
+						 data-is-current="<?= $isCurrent ? 'true' : 'false' ?>">
+					</div>
+				<?php endforeach; ?>
+			</div>
+		<?php endforeach; ?>
 	</div>
 </div>
 
 <script type="text/javascript">
 document.addEventListener('DOMContentLoaded', function() {
 	// Get the elements
-	const slider = document.getElementById('collection-slider');
-	const prevBtn = document.getElementById('scroll-prev');
-	const nextBtn = document.getElementById('scroll-next');
+	const colorSlider = document.getElementById('color-slider');
+	const sizeSlider = document.getElementById('size-slider');
+	const colorPrevBtn = document.getElementById('color-scroll-prev');
+	const colorNextBtn = document.getElementById('color-scroll-next');
+	const sizePrevBtn = document.getElementById('size-scroll-prev');
+	const sizeNextBtn = document.getElementById('size-scroll-next');
+	const dataContainer = document.getElementById('collection-products-data');
 	
-	if (!slider || !prevBtn || !nextBtn) return;
+	if (!colorSlider || !sizeSlider || !dataContainer) return;
 	
 	// Variables for drag scrolling
 	let isDown = false;
@@ -102,15 +209,118 @@ document.addEventListener('DOMContentLoaded', function() {
 	// Scroll distance per click (in pixels)
 	const scrollDistance = 200;
 	
+	// Initialize color selector functionality
+	function initColorSelectors() {
+		const colorSelectors = document.querySelectorAll('.color-selector');
+		colorSelectors.forEach(selector => {
+			selector.addEventListener('click', function(e) {
+				e.preventDefault();
+				
+				const colorId = this.getAttribute('data-color-id');
+				
+				// Update current color
+				dataContainer.setAttribute('data-current-color', colorId);
+				
+				// Update color selection
+				document.querySelectorAll('.color-item').forEach(item => {
+					item.classList.remove('current-product');
+				});
+				this.closest('.color-item').classList.add('current-product');
+				
+				// Update size options
+				updateSizeOptions(colorId);
+			});
+		});
+	}
+	
+	// Update size options based on selected color
+	function updateSizeOptions(colorId) {
+		// Clear current size options
+		sizeSlider.innerHTML = '';
+		
+		// Get product data for the selected color
+		const colorData = dataContainer.querySelector(`.color-data[data-color-id="${colorId}"]`);
+		if (!colorData) return;
+		
+		// Get all products for this color
+		const productElements = colorData.querySelectorAll('.product-data');
+		
+		// Create a map to store unique sizes
+		const sizeMap = new Map();
+		
+		// Collect unique size options
+		productElements.forEach(product => {
+			const sizeId = product.getAttribute('data-size-id');
+			
+			if (!sizeMap.has(sizeId)) {
+				sizeMap.set(sizeId, {
+					id: sizeId,
+					name: product.getAttribute('data-size-name'),
+					url: product.getAttribute('data-product-url'),
+					image: product.getAttribute('data-product-image'),
+					productName: product.getAttribute('data-product-name'),
+					isCurrent: product.getAttribute('data-is-current') === 'true',
+					productId: product.getAttribute('data-product-id')
+				});
+			}
+		});
+		
+		// Sort sizes (assuming they are numerical or can be compared as strings)
+		const sortedSizes = Array.from(sizeMap.values()).sort((a, b) => {
+			return a.name.localeCompare(b.name, undefined, {numeric: true});
+		});
+		
+		// Create size option elements
+		sortedSizes.forEach(size => {
+			const sizeItem = document.createElement('div');
+			sizeItem.className = `collection-product-item size-item ${size.isCurrent ? 'current-product' : ''}`;
+			sizeItem.setAttribute('data-color-id', colorId);
+			sizeItem.setAttribute('data-size-id', size.id);
+			
+			let itemContent = '';
+			if (size.isCurrent) {
+				itemContent = `
+					<div class="product-item-wrapper">
+						<img src="${size.image}" 
+							 alt="${size.productName}"
+							 class="collection-product-image" />
+						<span class="collection-product-size">${size.name}</span>
+					</div>
+				`;
+			} else {
+				itemContent = `
+					<a href="${size.url}" title="${size.productName}">
+						<img src="${size.image}" 
+							 alt="${size.productName}"
+							 class="collection-product-image" />
+						<span class="collection-product-size">${size.name}</span>
+					</a>
+				`;
+			}
+			
+			sizeItem.innerHTML = itemContent;
+			sizeSlider.appendChild(sizeItem);
+		});
+		
+		// Update UI states after populating new sizes
+		updateButtonStates();
+		centerCurrentSize();
+	}
+	
 	// Check if scrolling is needed and update button states
 	function updateButtonStates() {
+		updateSliderButtonStates(colorSlider, colorPrevBtn, colorNextBtn);
+		updateSliderButtonStates(sizeSlider, sizePrevBtn, sizeNextBtn);
+	}
+	
+	function updateSliderButtonStates(slider, prevBtn, nextBtn) {
 		const isScrollable = slider.scrollWidth > slider.clientWidth;
 		
 		// Always show both buttons
 		prevBtn.style.display = 'flex';
 		nextBtn.style.display = 'flex';
 		
-		// Update disabled state instead of hiding
+		// Update disabled state
 		if (slider.scrollLeft <= 0) {
 			prevBtn.classList.add('disabled');
 		} else {
@@ -124,108 +334,127 @@ document.addEventListener('DOMContentLoaded', function() {
 		}
 	}
 	
-	// Scroll left button click
-	prevBtn.addEventListener('click', function(e) {
-		e.preventDefault();
-		slider.scrollBy({
-			left: -scrollDistance,
-			behavior: 'smooth'
+	// Center current product on load
+	function centerCurrentColor() {
+		const currentProduct = colorSlider.querySelector('.color-item.current-product');
+		centerElement(colorSlider, currentProduct);
+	}
+	
+	function centerCurrentSize() {
+		const currentProduct = sizeSlider.querySelector('.size-item.current-product');
+		centerElement(sizeSlider, currentProduct);
+	}
+	
+	function centerElement(slider, element) {
+		if (element) {
+			const containerWidth = slider.offsetWidth;
+			const elementOffset = element.offsetLeft;
+			
+			// Center the element in the viewport
+			slider.scrollLeft = elementOffset - (containerWidth / 2) + (element.offsetWidth / 2);
+		}
+	}
+	
+	// Set up event listeners for color slider
+	setupSlider(colorSlider, colorPrevBtn, colorNextBtn);
+	
+	// Set up event listeners for size slider
+	setupSlider(sizeSlider, sizePrevBtn, sizeNextBtn);
+	
+	function setupSlider(slider, prevBtn, nextBtn) {
+		// Scroll left button click
+		prevBtn.addEventListener('click', function(e) {
+			e.preventDefault();
+			slider.scrollBy({
+				left: -scrollDistance,
+				behavior: 'smooth'
+			});
+			setTimeout(() => updateButtonStates(), 100); // Update after scroll animation
 		});
-		setTimeout(updateButtonStates, 100); // Update after scroll animation
-	});
-	
-	// Scroll right button click
-	nextBtn.addEventListener('click', function(e) {
-		e.preventDefault();
-		slider.scrollBy({
-			left: scrollDistance,
-			behavior: 'smooth'
+		
+		// Scroll right button click
+		nextBtn.addEventListener('click', function(e) {
+			e.preventDefault();
+			slider.scrollBy({
+				left: scrollDistance,
+				behavior: 'smooth'
+			});
+			setTimeout(() => updateButtonStates(), 100); // Update after scroll animation
 		});
-		setTimeout(updateButtonStates, 100); // Update after scroll animation
-	});
-	
-	// Mouse drag to scroll
-	slider.addEventListener('mousedown', function(e) {
-		isDown = true;
-		slider.classList.add('active');
-		startX = e.pageX - slider.offsetLeft;
-		scrollLeft = slider.scrollLeft;
-		// Prevent text selection during drag
-		e.preventDefault();
-	});
-	
-	slider.addEventListener('mouseleave', function() {
-		isDown = false;
-		slider.classList.remove('active');
-	});
-	
-	slider.addEventListener('mouseup', function() {
-		isDown = false;
-		slider.classList.remove('active');
-		updateButtonStates();
-	});
-	
-	slider.addEventListener('mousemove', function(e) {
-		if (!isDown) return;
-		e.preventDefault();
-		const x = e.pageX - slider.offsetLeft;
-		const walk = (x - startX) * 2; // Scroll speed multiplier
-		slider.scrollLeft = scrollLeft - walk;
-		updateButtonStates();
-	});
-	
-	// Touch events for mobile
-	slider.addEventListener('touchstart', function(e) {
-		isDown = true;
-		slider.classList.add('active');
-		startX = e.touches[0].pageX - slider.offsetLeft;
-		scrollLeft = slider.scrollLeft;
-	});
-	
-	slider.addEventListener('touchend', function() {
-		isDown = false;
-		slider.classList.remove('active');
-		updateButtonStates();
-	});
-	
-	slider.addEventListener('touchmove', function(e) {
-		if (!isDown) return;
-		const x = e.touches[0].pageX - slider.offsetLeft;
-		const walk = (x - startX) * 2;
-		slider.scrollLeft = scrollLeft - walk;
-		updateButtonStates();
-	});
-	
-	// Listen for scroll events
-	slider.addEventListener('scroll', function() {
-		updateButtonStates();
-	});
+		
+		// Mouse drag to scroll
+		slider.addEventListener('mousedown', function(e) {
+			isDown = true;
+			slider.classList.add('active');
+			startX = e.pageX - slider.offsetLeft;
+			scrollLeft = slider.scrollLeft;
+			// Prevent text selection during drag
+			e.preventDefault();
+		});
+		
+		slider.addEventListener('mouseleave', function() {
+			isDown = false;
+			slider.classList.remove('active');
+		});
+		
+		slider.addEventListener('mouseup', function() {
+			isDown = false;
+			slider.classList.remove('active');
+			updateButtonStates();
+		});
+		
+		slider.addEventListener('mousemove', function(e) {
+			if (!isDown) return;
+			e.preventDefault();
+			const x = e.pageX - slider.offsetLeft;
+			const walk = (x - startX) * 2; // Scroll speed multiplier
+			slider.scrollLeft = scrollLeft - walk;
+			updateButtonStates();
+		});
+		
+		// Touch events for mobile
+		slider.addEventListener('touchstart', function(e) {
+			isDown = true;
+			slider.classList.add('active');
+			startX = e.touches[0].pageX - slider.offsetLeft;
+			scrollLeft = slider.scrollLeft;
+		});
+		
+		slider.addEventListener('touchend', function() {
+			isDown = false;
+			slider.classList.remove('active');
+			updateButtonStates();
+		});
+		
+		slider.addEventListener('touchmove', function(e) {
+			if (!isDown) return;
+			const x = e.touches[0].pageX - slider.offsetLeft;
+			const walk = (x - startX) * 2;
+			slider.scrollLeft = scrollLeft - walk;
+			updateButtonStates();
+		});
+		
+		// Listen for scroll events
+		slider.addEventListener('scroll', function() {
+			updateButtonStates();
+		});
+	}
 	
 	// Listen for window resize
 	window.addEventListener('resize', function() {
 		updateButtonStates();
 	});
 	
-	// Center current product on load
-	function centerCurrentProduct() {
-		const currentProduct = document.querySelector('.collection-product-item.current-product');
-		if (currentProduct) {
-			const containerWidth = slider.offsetWidth;
-			const currentProductOffset = currentProduct.offsetLeft;
-			
-			// Center the current product in the viewport
-			slider.scrollLeft = currentProductOffset - (containerWidth / 2) + (currentProduct.offsetWidth / 2);
-			
-			// Update button states after scrolling
-			updateButtonStates();
-		}
-	}
+	// Initialize
+	initColorSelectors();
+	updateButtonStates();
+	centerCurrentColor();
 	
-	// Initialize after a short delay to ensure elements are properly sized
-	setTimeout(function() {
-		updateButtonStates();
-		centerCurrentProduct();
-	}, 300);
+	// Make sure sizes are loaded for the current color
+	const currentColor = dataContainer.getAttribute('data-current-color');
+	if (currentColor) {
+		centerCurrentSize();
+	}
 });
 </script>
 <?php endif; ?>

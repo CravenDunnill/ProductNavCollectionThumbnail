@@ -1,7 +1,7 @@
 .product-collection-navigation {
 	max-width: 608px;
 	width: 100%;
-	margin-bottom: 20px;
+	margin-bottom: 30px;
 	box-sizing: border-box;
 }
 
@@ -12,12 +12,20 @@
 	font-weight: 600;
 }
 
+.collection-row-label {
+	font-size: 14px;
+	font-weight: 600;
+	margin: 15px 0 8px;
+	color: #333;
+}
+
 .collection-products-container {
 	position: relative;
 	width: 100%;
 	max-width: 100%;
 	display: flex;
 	align-items: center;
+	margin-bottom: 15px;
 }
 
 .collection-products {
@@ -80,7 +88,7 @@
 
 .collection-product-size {
 	display: block;
-	margin-top: 2px;
+	margin-top: 5px;
 	font-size: 12px;
 	color: #888888;
 	overflow: hidden;
@@ -88,30 +96,38 @@
 	white-space: nowrap;
 }
 
+/* Color selector styles */
+.color-item {
+	transition: transform 0.2s;
+}
+
+.color-item:not(.current-product):hover {
+	transform: translateY(-3px);
+}
+
 /* Current product styling */
 .collection-product-item.current-product {
 	z-index: 1;
 }
 
-.collection-product-item.current-product .product-item-wrapper {
+.collection-product-item.current-product .product-item-wrapper,
+.collection-product-item.current-product a {
 	position: relative;
 	padding: 3px;
 	background-color: #f8f8f8;
 	border: 2px solid #ff5501;
 	border-radius: 5px;
+	display: block;
 }
 
 .collection-product-item.current-product .collection-product-image {
 	border: none;
 }
 
-.collection-product-item.current-product .collection-product-color-name {
+.collection-product-item.current-product .collection-product-color-name,
+.collection-product-item.current-product .collection-product-size {
 	font-weight: bold;
 	color: #ff5501;
-}
-
-.collection-product-item.current-product .collection-product-size {
-	color: #666666;
 }
 
 /* Navigation arrows */
@@ -152,6 +168,20 @@
 	pointer-events: none;
 }
 
+/* Separate styles for color and size sections */
+.color-options .collection-product-item {
+	cursor: pointer;
+}
+
+.size-options .collection-product-item {
+	width: 90px;
+}
+
+.size-options .collection-product-image {
+	width: 90px;
+	height: 90px;
+}
+
 /* For small screens adjust spacing */
 @media screen and (max-width: 480px) {
 	.collection-products {
@@ -165,5 +195,14 @@
 	.collection-product-image {
 		width: 80px;
 		height: 80px;
+	}
+	
+	.size-options .collection-product-item {
+		width: 70px;
+	}
+	
+	.size-options .collection-product-image {
+		width: 70px;
+		height: 70px;
 	}
 }
