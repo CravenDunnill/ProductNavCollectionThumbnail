@@ -13,6 +13,7 @@ use Magento\Framework\Exception\LocalizedException;
 use Magento\ConfigurableProduct\Model\Product\Type\Configurable;
 use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Store\Model\StoreManagerInterface;
+use Magento\Framework\Pricing\Helper\Data as PricingHelper;
 
 class CollectionNavigation extends Template
 {
@@ -57,6 +58,11 @@ class CollectionNavigation extends Template
 	protected $storeManager;
 	
 	/**
+	 * @var PricingHelper
+	 */
+	protected $pricingHelper;
+	
+	/**
 	 * Cache for attribute options
 	 * 
 	 * @var array
@@ -75,6 +81,7 @@ class CollectionNavigation extends Template
 	 * @param Configurable $configurableType
 	 * @param ProductRepositoryInterface $productRepository
 	 * @param StoreManagerInterface $storeManager
+	 * @param PricingHelper $pricingHelper
 	 * @param array $data
 	 */
 	public function __construct(
@@ -87,6 +94,7 @@ class CollectionNavigation extends Template
 		Configurable $configurableType,
 		ProductRepositoryInterface $productRepository,
 		StoreManagerInterface $storeManager,
+		PricingHelper $pricingHelper,
 		array $data = []
 	) {
 		$this->registry = $registry;
@@ -97,6 +105,7 @@ class CollectionNavigation extends Template
 		$this->configurableType = $configurableType;
 		$this->productRepository = $productRepository;
 		$this->storeManager = $storeManager;
+		$this->pricingHelper = $pricingHelper;
 		parent::__construct($context, $data);
 	}
 
@@ -253,5 +262,16 @@ class CollectionNavigation extends Template
 	{
 		$product = $this->getCurrentProduct();
 		return $product && $this->helper->isConfigurable($product);
+	}
+	
+	/**
+	 * Format price with currency symbol
+	 * 
+	 * @param float $price
+	 * @return string
+	 */
+	public function getFormattedPrice($price)
+	{
+		return $this->pricingHelper->currency($price, true, false);
 	}
 }

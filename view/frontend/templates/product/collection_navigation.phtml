@@ -105,66 +105,64 @@ if ($collectionName && !empty($displayProducts)):
 		</div>
 	</div>
 	
-	<!-- Size options row -->
-	<div class="collection-row-label">Select Size:</div>
-	<div class="collection-products-container">
-		<div class="collection-nav-arrow prev" id="size-scroll-prev">
-			<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-				<path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"/>
-			</svg>
-		</div>
-		
-		<div class="collection-products size-options" id="size-slider">
-			<?php 
-			// Start with the sizes for the current color
-			$sizesToShow = [];
-			if ($currentColorId && isset($productsByColor[$currentColorId])) {
-				$sizesToShow = $productsByColor[$currentColorId]['products'];
-			} elseif (!empty($productsByColor)) {
-				// If no current color, show sizes for the first color
-				$firstColor = reset($productsByColor);
-				$sizesToShow = $firstColor['products'];
-				$currentColorId = key($productsByColor);
+	<!-- Size options table -->
+	<div class="collection-row-label">Select Size: <?php 
+		if ($currentProduct) {
+			$currentSizeId = $currentProduct->getTileSize();
+			if ($currentSizeId) {
+				echo $block->escapeHtml($block->getAttributeOptionText('tile_size', $currentSizeId));
 			}
-			
-			// Sort by size
-			usort($sizesToShow, function($a, $b) use ($block) {
-				$sizeA = $a->getTileSize();
-				$sizeB = $b->getTileSize();
-				return strcmp($sizeA, $sizeB);
-			});
-			
-			foreach ($sizesToShow as $product):
-				$isCurrent = $product->getId() == $currentProduct->getId();
-				$tileSize = $block->getAttributeOptionText('tile_size', $product->getTileSize());
-			?>
-				<div class="collection-product-item size-item <?= $isCurrent ? 'current-product' : '' ?>" 
-					 data-color-id="<?= $block->escapeHtmlAttr($product->getTileColourName()) ?>"
-					 data-size-id="<?= $block->escapeHtmlAttr($product->getTileSize()) ?>">
-					<?php if ($isCurrent): ?>
-						<div class="product-item-wrapper">
-							<img src="<?= $block->escapeUrl($block->getProductImageUrl($product)) ?>" 
-								 alt="<?= $block->escapeHtmlAttr($product->getName()) ?>"
-								 class="collection-product-image" />
-							<span class="collection-product-size"><?= $block->escapeHtml($tileSize) ?></span>
-						</div>
-					<?php else: ?>
-						<a href="<?= $block->escapeUrl($product->getProductUrl()) ?>" title="<?= $block->escapeHtmlAttr($product->getName()) ?>">
-							<img src="<?= $block->escapeUrl($block->getProductImageUrl($product)) ?>" 
-								 alt="<?= $block->escapeHtmlAttr($product->getName()) ?>"
-								 class="collection-product-image" />
-							<span class="collection-product-size"><?= $block->escapeHtml($tileSize) ?></span>
-						</a>
-					<?php endif; ?>
-				</div>
-			<?php endforeach; ?>
-		</div>
-		
-		<div class="collection-nav-arrow next" id="size-scroll-next">
-			<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-				<path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z"/>
-			</svg>
-		</div>
+		}
+	?></div>
+	<div class="collection-sizes-table-container">
+		<table class="collection-sizes-table" id="sizes-table">
+			<thead>
+				<tr>
+					<th>Size (mm)</th>
+					<th>Price per tile</th>
+					<th>Price per m²</th>
+				</tr>
+			</thead>
+			<tbody>
+				<?php 
+				// Start with the sizes for the current color
+				$sizesToShow = [];
+				if ($currentColorId && isset($productsByColor[$currentColorId])) {
+					$sizesToShow = $productsByColor[$currentColorId]['products'];
+				} elseif (!empty($productsByColor)) {
+					// If no current color, show sizes for the first color
+					$firstColor = reset($productsByColor);
+					$sizesToShow = $firstColor['products'];
+					$currentColorId = key($productsByColor);
+				}
+				
+				// Sort by size
+				usort($sizesToShow, function($a, $b) use ($block) {
+					$sizeA = $a->getTileSize();
+					$sizeB = $b->getTileSize();
+					return strcmp($sizeA, $sizeB);
+				});
+				
+				foreach ($sizesToShow as $product):
+					$isCurrent = $product->getId() == $currentProduct->getId();
+					$tileSize = $block->getAttributeOptionText('tile_size', $product->getTileSize());
+					
+					// Get price information
+					$price = $product->getPriceInfo()->getPrice('final_price')->getValue();
+					$pricePerM2 = $product->getData('price_m2');
+				?>
+					<tr class="size-row <?= $isCurrent ? 'current-product' : '' ?>" 
+						data-color-id="<?= $block->escapeHtmlAttr($product->getTileColourName()) ?>"
+						data-size-id="<?= $block->escapeHtmlAttr($product->getTileSize()) ?>"
+						data-product-id="<?= $block->escapeHtmlAttr($product->getId()) ?>"
+						data-product-url="<?= $block->escapeUrl($product->getProductUrl()) ?>">
+						<td class="size-cell"><?= $block->escapeHtml($tileSize) ?></td>
+						<td class="price-cell"><?= $block->escapeHtml($block->getFormattedPrice($price)) ?></td>
+						<td class="price-m2-cell"><?= $block->escapeHtml($block->getFormattedPrice($pricePerM2)) ?></td>
+					</tr>
+				<?php endforeach; ?>
+			</tbody>
+		</table>
 	</div>
 	
 	<!-- Hidden container for all product data -->
@@ -176,6 +174,8 @@ if ($collectionName && !empty($displayProducts)):
 					<?php 
 					$tileSize = $block->getAttributeOptionText('tile_size', $product->getTileSize());
 					$isCurrent = $product->getId() == $currentProduct->getId();
+					$price = $product->getPriceInfo()->getPrice('final_price')->getValue();
+					$pricePerM2 = $product->getData('price_m2');
 					?>
 					<div class="product-data" 
 						 data-product-id="<?= $block->escapeHtmlAttr($product->getId()) ?>"
@@ -184,6 +184,8 @@ if ($collectionName && !empty($displayProducts)):
 						 data-product-url="<?= $block->escapeUrl($product->getProductUrl()) ?>"
 						 data-product-name="<?= $block->escapeHtmlAttr($product->getName()) ?>"
 						 data-product-image="<?= $block->escapeUrl($block->getProductImageUrl($product)) ?>"
+						 data-price="<?= $block->escapeHtmlAttr($price) ?>"
+						 data-price-m2="<?= $block->escapeHtmlAttr($pricePerM2) ?>"
 						 data-is-current="<?= $isCurrent ? 'true' : 'false' ?>">
 					</div>
 				<?php endforeach; ?>
@@ -196,14 +198,12 @@ if ($collectionName && !empty($displayProducts)):
 document.addEventListener('DOMContentLoaded', function() {
 	// Get the elements
 	const colorSlider = document.getElementById('color-slider');
-	const sizeSlider = document.getElementById('size-slider');
+	const sizesTable = document.getElementById('sizes-table');
 	const colorPrevBtn = document.getElementById('color-scroll-prev');
 	const colorNextBtn = document.getElementById('color-scroll-next');
-	const sizePrevBtn = document.getElementById('size-scroll-prev');
-	const sizeNextBtn = document.getElementById('size-scroll-next');
 	const dataContainer = document.getElementById('collection-products-data');
 	
-	if (!colorSlider || !sizeSlider || !dataContainer) return;
+	if (!colorSlider || !sizesTable || !dataContainer) return;
 	
 	// Variables for drag scrolling
 	let isDown = false;
@@ -236,11 +236,26 @@ document.addEventListener('DOMContentLoaded', function() {
 			});
 		});
 	}
+
+	// Initialize size row selection functionality
+	function initSizeRowSelectors() {
+		const sizeRows = sizesTable.querySelectorAll('tbody tr.size-row');
+		sizeRows.forEach(row => {
+			row.addEventListener('click', function(e) {
+				e.preventDefault();
+				const productUrl = this.getAttribute('data-product-url');
+				if (productUrl) {
+					window.location.href = productUrl;
+				}
+			});
+		});
+	}
 	
 	// Update size options based on selected color
 	function updateSizeOptions(colorId) {
 		// Clear current size options
-		sizeSlider.innerHTML = '';
+		const tableBody = sizesTable.querySelector('tbody');
+		tableBody.innerHTML = '';
 		
 		// Get product data for the selected color
 		const colorData = dataContainer.querySelector(`.color-data[data-color-id="${colorId}"]`);
@@ -261,8 +276,8 @@ document.addEventListener('DOMContentLoaded', function() {
 					id: sizeId,
 					name: product.getAttribute('data-size-name'),
 					url: product.getAttribute('data-product-url'),
-					image: product.getAttribute('data-product-image'),
-					productName: product.getAttribute('data-product-name'),
+					price: product.getAttribute('data-price'),
+					priceM2: product.getAttribute('data-price-m2'),
 					isCurrent: product.getAttribute('data-is-current') === 'true',
 					productId: product.getAttribute('data-product-id')
 				});
@@ -274,47 +289,43 @@ document.addEventListener('DOMContentLoaded', function() {
 			return a.name.localeCompare(b.name, undefined, {numeric: true});
 		});
 		
-		// Create size option elements
+		// Create size option rows
 		sortedSizes.forEach(size => {
-			const sizeItem = document.createElement('div');
-			sizeItem.className = `collection-product-item size-item ${size.isCurrent ? 'current-product' : ''}`;
-			sizeItem.setAttribute('data-color-id', colorId);
-			sizeItem.setAttribute('data-size-id', size.id);
+			const sizeRow = document.createElement('tr');
+			sizeRow.className = `size-row ${size.isCurrent ? 'current-product' : ''}`;
+			sizeRow.setAttribute('data-color-id', colorId);
+			sizeRow.setAttribute('data-size-id', size.id);
+			sizeRow.setAttribute('data-product-id', size.productId);
+			sizeRow.setAttribute('data-product-url', size.url);
 			
-			let itemContent = '';
-			if (size.isCurrent) {
-				itemContent = `
-					<div class="product-item-wrapper">
-						<img src="${size.image}" 
-							 alt="${size.productName}"
-							 class="collection-product-image" />
-						<span class="collection-product-size">${size.name}</span>
-					</div>
-				`;
-			} else {
-				itemContent = `
-					<a href="${size.url}" title="${size.productName}">
-						<img src="${size.image}" 
-							 alt="${size.productName}"
-							 class="collection-product-image" />
-						<span class="collection-product-size">${size.name}</span>
-					</a>
-				`;
-			}
+			// Format prices
+			const formattedPrice = new Intl.NumberFormat('en-GB', { 
+				style: 'currency', 
+				currency: 'GBP' 
+			}).format(size.price);
 			
-			sizeItem.innerHTML = itemContent;
-			sizeSlider.appendChild(sizeItem);
+			const formattedPriceM2 = new Intl.NumberFormat('en-GB', { 
+				style: 'currency', 
+				currency: 'GBP' 
+			}).format(size.priceM2);
+			
+			// Create row cells
+			sizeRow.innerHTML = `
+				<td class="size-cell">${size.name}</td>
+				<td class="price-cell">${formattedPrice}</td>
+				<td class="price-m2-cell">${formattedPriceM2}</td>
+			`;
+			
+			tableBody.appendChild(sizeRow);
 		});
 		
-		// Update UI states after populating new sizes
-		updateButtonStates();
-		centerCurrentSize();
+		// Re-initialize row click handlers
+		initSizeRowSelectors();
 	}
 	
 	// Check if scrolling is needed and update button states
 	function updateButtonStates() {
 		updateSliderButtonStates(colorSlider, colorPrevBtn, colorNextBtn);
-		updateSliderButtonStates(sizeSlider, sizePrevBtn, sizeNextBtn);
 	}
 	
 	function updateSliderButtonStates(slider, prevBtn, nextBtn) {
@@ -344,11 +355,6 @@ document.addEventListener('DOMContentLoaded', function() {
 		centerElement(colorSlider, currentProduct);
 	}
 	
-	function centerCurrentSize() {
-		const currentProduct = sizeSlider.querySelector('.size-item.current-product');
-		centerElement(sizeSlider, currentProduct);
-	}
-	
 	function centerElement(slider, element) {
 		if (element) {
 			const containerWidth = slider.offsetWidth;
@@ -361,9 +367,6 @@ document.addEventListener('DOMContentLoaded', function() {
 	
 	// Set up event listeners for color slider
 	setupSlider(colorSlider, colorPrevBtn, colorNextBtn);
-	
-	// Set up event listeners for size slider
-	setupSlider(sizeSlider, sizePrevBtn, sizeNextBtn);
 	
 	function setupSlider(slider, prevBtn, nextBtn) {
 		// Scroll left button click
@@ -451,14 +454,9 @@ document.addEventListener('DOMContentLoaded', function() {
 	
 	// Initialize
 	initColorSelectors();
+	initSizeRowSelectors();
 	updateButtonStates();
 	centerCurrentColor();
-	
-	// Make sure sizes are loaded for the current color
-	const currentColor = dataContainer.getAttribute('data-current-color');
-	if (currentColor) {
-		centerCurrentSize();
-	}
 });
 </script>
 <?php endif; ?>

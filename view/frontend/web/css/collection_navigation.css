@@ -86,16 +86,6 @@
 	white-space: nowrap;
 }
 
-.collection-product-size {
-	display: block;
-	margin-top: 5px;
-	font-size: 12px;
-	color: #888888;
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
-}
-
 /* Color selector styles */
 .color-item {
 	transition: transform 0.2s;
@@ -124,8 +114,7 @@
 	border: none;
 }
 
-.collection-product-item.current-product .collection-product-color-name,
-.collection-product-item.current-product .collection-product-size {
+.collection-product-item.current-product .collection-product-color-name {
 	font-weight: bold;
 	color: #ff5501;
 }
@@ -168,18 +157,65 @@
 	pointer-events: none;
 }
 
-/* Separate styles for color and size sections */
+/* Separate styles for color section */
 .color-options .collection-product-item {
 	cursor: pointer;
 }
 
-.size-options .collection-product-item {
-	width: 90px;
+/* Sizes table styles */
+.collection-sizes-table-container {
+	width: 100%;
+	margin-bottom: 20px;
+	overflow-x: auto;
 }
 
-.size-options .collection-product-image {
-	width: 90px;
-	height: 90px;
+.collection-sizes-table {
+	width: 100%;
+	border-collapse: collapse;
+	border-spacing: 0;
+	font-size: 14px;
+}
+
+.collection-sizes-table th {
+	background-color: #f5f5f5;
+	border: 1px solid #e1e1e1;
+	padding: 10px;
+	text-align: left;
+	font-weight: 600;
+}
+
+.collection-sizes-table td {
+	border: 1px solid #e1e1e1;
+	padding: 10px;
+	text-align: left;
+}
+
+.collection-sizes-table tr.size-row {
+	cursor: pointer;
+	transition: background-color 0.2s;
+}
+
+.collection-sizes-table tr.size-row:hover {
+	background-color: #f8f8f8;
+}
+
+.collection-sizes-table tr.size-row.current-product {
+	background-color: #fff8f5;
+	border-left: 3px solid #ff5501;
+}
+
+.collection-sizes-table tr.current-product td {
+	font-weight: 600;
+	color: #ff5501;
+}
+
+.collection-sizes-table .size-cell {
+	font-weight: 500;
+}
+
+.collection-sizes-table .price-cell,
+.collection-sizes-table .price-m2-cell {
+	text-align: right;
 }
 
 /* For small screens adjust spacing */
@@ -197,12 +233,9 @@
 		height: 80px;
 	}
 	
-	.size-options .collection-product-item {
-		width: 70px;
-	}
-	
-	.size-options .collection-product-image {
-		width: 70px;
-		height: 70px;
+	.collection-sizes-table th,
+	.collection-sizes-table td {
+		padding: 8px 5px;
+		font-size: 12px;
 	}
 }
