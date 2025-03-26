@@ -66,8 +66,12 @@ if ($collectionName && !empty($displayProducts)):
 		<h3><?= $block->escapeHtml($collectionName) ?> Collection</h3>
 	</div>
 	
-	<!-- Color options row -->
-	<div class="collection-row-label">Colors:</div>
+	<!-- Colour options row -->
+	<div class="collection-row-label">Select Colour: <?php 
+		if ($currentColorId && isset($productsByColor[$currentColorId])) {
+			echo $block->escapeHtml($productsByColor[$currentColorId]['colorName']);
+		}
+	?></div>
 	<div class="collection-products-container">
 		<div class="collection-nav-arrow prev" id="color-scroll-prev">
 			<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
@@ -102,7 +106,7 @@ if ($collectionName && !empty($displayProducts)):
 	</div>
 	
 	<!-- Size options row -->
-	<div class="collection-row-label">Sizes:</div>
+	<div class="collection-row-label">Select Size:</div>
 	<div class="collection-products-container">
 		<div class="collection-nav-arrow prev" id="size-scroll-prev">
 			<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
