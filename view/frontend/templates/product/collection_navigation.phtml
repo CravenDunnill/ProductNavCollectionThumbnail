@@ -66,12 +66,7 @@ if ($collectionName && !empty($displayProducts)):
 		<h3><?= $block->escapeHtml($collectionName) ?> Collection</h3>
 	</div>
 	
-	<!-- Colour options row -->
-	<div class="collection-row-label">Select Colour: <?php 
-		if ($currentColorId && isset($productsByColor[$currentColorId])) {
-			echo $block->escapeHtml($productsByColor[$currentColorId]['colorName']);
-		}
-	?></div>
+	<!-- Colour options row - moved the label below the carousel -->
 	<div class="collection-products-container">
 		<div class="collection-nav-arrow prev" id="color-scroll-prev">
 			<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
@@ -84,15 +79,42 @@ if ($collectionName && !empty($displayProducts)):
 				<?php 
 				$isCurrentColor = ($colorId == $currentColorId);
 				$firstProduct = reset($colorGroup['products']);
+				
+				// Count unique sizes for this color
+				$uniqueSizes = [];
+				$sizeProducts = [];
+				foreach ($colorGroup['products'] as $product) {
+					$sizeId = $product->getTileSize();
+					if (!isset($uniqueSizes[$sizeId])) {
+						$uniqueSizes[$sizeId] = true;
+						$sizeProducts[$sizeId] = $product;
+					}
+				}
+				$sizeCount = count($uniqueSizes);
+				
+				// Get the smallest size product
+				$smallestSizeProduct = $firstProduct;
+				if (count($sizeProducts) > 0) {
+					// Sort products by size ID (assuming smaller ID = smaller size)
+					// You may need to adjust this logic based on how sizes are stored
+					ksort($sizeProducts);
+					$smallestSizeProduct = reset($sizeProducts);
+				}
+				$productUrl = $smallestSizeProduct->getProductUrl();
 				?>
 				<div class="collection-product-item color-item <?= $isCurrentColor ? 'current-product' : '' ?>" 
 					 data-color-id="<?= $block->escapeHtmlAttr($colorId) ?>">
-					<a href="javascript:void(0);" class="color-selector" 
+					<a href="<?= $block->escapeUrl($productUrl) ?>" class="color-selector" 
 					   data-color-id="<?= $block->escapeHtmlAttr($colorId) ?>">
-						<img src="<?= $block->escapeUrl($block->getProductImageUrl($firstProduct)) ?>" 
-							 alt="<?= $block->escapeHtmlAttr($colorGroup['colorName']) ?>"
-							 class="collection-product-image" />
-						<span class="collection-product-color-name"><?= $block->escapeHtml($colorGroup['colorName']) ?></span>
+						<div class="thumbnail-wrapper">
+							<img src="<?= $block->escapeUrl($block->getProductImageUrl($firstProduct)) ?>" 
+								 alt="<?= $block->escapeHtmlAttr($colorGroup['colorName']) ?>"
+								 class="collection-product-image" 
+								 title="<?= $block->escapeHtmlAttr($colorGroup['colorName']) ?>" />
+							<?php if ($sizeCount > 1): ?>
+								<span class="size-count-badge"><?= $sizeCount ?> sizes</span>
+							<?php endif; ?>
+						</div>
 					</a>
 				</div>
 			<?php endforeach; ?>
@@ -104,6 +126,13 @@ if ($collectionName && !empty($displayProducts)):
 			</svg>
 		</div>
 	</div>
+	
+	<!-- Moved the color label to here, after the carousel -->
+	<div class="collection-row-label">Select Colour: <?php 
+		if ($currentColorId && isset($productsByColor[$currentColorId])) {
+			echo $block->escapeHtml($productsByColor[$currentColorId]['colorName']);
+		}
+	?></div>
 	
 	<!-- Select Size Button - updated to show count -->
 	<div class="collection-size-selector">
@@ -179,15 +208,24 @@ if ($collectionName && !empty($displayProducts)):
 						// Get price information
 						$price = $product->getPriceInfo()->getPrice('final_price')->getValue();
 						$pricePerM2 = $product->getData('price_m2');
+						$productUrl = $product->getProductUrl();
 					?>
-						<tr class="size-row <?= $isCurrent ? 'current-product' : '' ?>" 
-							data-color-id="<?= $block->escapeHtmlAttr($product->getTileColourName()) ?>"
-							data-size-id="<?= $block->escapeHtmlAttr($product->getTileSize()) ?>"
-							data-product-id="<?= $block->escapeHtmlAttr($product->getId()) ?>"
-							data-product-url="<?= $block->escapeUrl($product->getProductUrl()) ?>">
-							<td class="size-cell"><?= $block->escapeHtml($tileSize) ?></td>
-							<td class="price-cell"><?= $block->escapeHtml($block->getFormattedPrice($price)) ?></td>
-							<td class="price-m2-cell"><?= $block->escapeHtml($block->getFormattedPrice($pricePerM2)) ?></td>
+						<tr class="size-row <?= $isCurrent ? 'current-product' : '' ?>">
+							<td class="size-cell">
+								<a href="<?= $block->escapeUrl($productUrl) ?>" class="size-link">
+									<?= $block->escapeHtml($tileSize) ?>
+								</a>
+							</td>
+							<td class="price-cell">
+								<a href="<?= $block->escapeUrl($productUrl) ?>" class="size-link">
+									<?= $block->escapeHtml($block->getFormattedPrice($price)) ?>
+								</a>
+							</td>
+							<td class="price-m2-cell">
+								<a href="<?= $block->escapeUrl($productUrl) ?>" class="size-link">
+									<?= $block->escapeHtml($block->getFormattedPrice($pricePerM2)) ?>
+								</a>
+							</td>
 						</tr>
 					<?php endforeach; ?>
 				</tbody>
@@ -324,8 +362,10 @@ document.addEventListener('DOMContentLoaded', function() {
 	function initColorSelectors() {
 		const colorSelectors = document.querySelectorAll('.color-selector');
 		colorSelectors.forEach(selector => {
+			// We keep this just to update the UI when a color is clicked but not navigated to
+			// (e.g., if user clicks but holds Ctrl to open in new tab)
 			selector.addEventListener('click', function(e) {
-				e.preventDefault();
+				// Don't use preventDefault() as we want the link to navigate normally
 				
 				const colorId = this.getAttribute('data-color-id');
 				
@@ -338,10 +378,9 @@ document.addEventListener('DOMContentLoaded', function() {
 				});
 				this.closest('.color-item').classList.add('current-product');
 				
-				// Update size table
+				// Update size table and button text in case the link is opened in a new tab
+				// and the current page remains
 				updateSizeTable(colorId);
-				
-				// Update button text to show number of options
 				updateSizeButtonText();
 			});
 		});
@@ -396,7 +435,6 @@ document.addEventListener('DOMContentLoaded', function() {
 		sizes.forEach(size => {
 			const row = document.createElement('tr');
 			row.className = `size-row ${size.isCurrent ? 'current-product' : ''}`;
-			row.setAttribute('data-product-url', size.url);
 			
 			// Format prices
 			const formattedPrice = new Intl.NumberFormat('en-GB', { 
@@ -409,17 +447,18 @@ document.addEventListener('DOMContentLoaded', function() {
 				currency: 'GBP' 
 			}).format(parseFloat(size.priceM2));
 			
-			// Create cells
+			// Create cells with proper links
 			row.innerHTML = `
-				<td class="size-cell">${size.name}</td>
-				<td class="price-cell">${formattedPrice}</td>
-				<td class="price-m2-cell">${formattedPriceM2}</td>
+				<td class="size-cell">
+					<a href="${size.url}" class="size-link">${size.name}</a>
+				</td>
+				<td class="price-cell">
+					<a href="${size.url}" class="size-link">${formattedPrice}</a>
+				</td>
+				<td class="price-m2-cell">
+					<a href="${size.url}" class="size-link">${formattedPriceM2}</a>
+				</td>
 			`;
-			
-			// Add click handler
-			row.addEventListener('click', function() {
-				window.location.href = size.url;
-			});
 			
 			// Add to table
 			tableBody.appendChild(row);
@@ -536,6 +575,7 @@ document.addEventListener('DOMContentLoaded', function() {
 		});
 	}
 	
+	// We don't need the click handlers anymore since we're using links
 	// Initialize functionality
 	initColorSelectors();
 	updateButtonStates();
@@ -544,7 +584,7 @@ document.addEventListener('DOMContentLoaded', function() {
 	// Initialize button text with size count
 	updateSizeButtonText();
 	
-	// Add simple styles for the button
+	// Add simple styles for the button and links
 	const style = document.createElement('style');
 	style.textContent = `
 		#toggle-size-table-btn.active {
@@ -562,9 +602,47 @@ document.addEventListener('DOMContentLoaded', function() {
 			overflow: visible !important;
 		}
 		
+		/* Size count badge styles */
+	.thumbnail-wrapper {
+		position: relative;
+		display: inline-block;
+	}
+	
+	.size-count-badge {
+		position: absolute;
+		bottom: 0;
+		left: 0;
+		right: 0;
+		background-color: rgba(255, 85, 1, 0.9);
+		color: white;
+		padding: 1px 5px; /* Reduced vertical padding */
+		font-size: 11px;
+		font-weight: 600;
+		text-align: center;
+		border-bottom-left-radius: 3px;
+		border-bottom-right-radius: 3px;
+	}
+	
+	/* Adjusted spacing for new layout */
+	.collection-products-container {
+		margin-top: 10px;
+		margin-bottom: 5px;
+	}
+	
+	.collection-row-label {
+		margin: 8px 0 15px;
+		text-align: left; /* Changed to left alignment */
+	}
+		.collection-sizes-table .size-link {
+			display: block;
+			color: inherit;
+			text-decoration: none;
+			padding: 4px 0;
+			width: 100%;
+		}
+		
 		/* Make table rows clearly visible and clickable */
 		.collection-sizes-table tr.size-row {
-			cursor: pointer;
 			transition: background-color 0.2s;
 			height: auto !important;
 			visibility: visible !important;
