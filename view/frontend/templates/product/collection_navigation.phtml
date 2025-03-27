@@ -105,113 +105,220 @@ if ($collectionName && !empty($displayProducts)):
 		</div>
 	</div>
 	
-	<!-- Size options table -->
-	<div class="collection-row-label">Select Size: <?php 
-		if ($currentProduct) {
-			$currentSizeId = $currentProduct->getTileSize();
-			if ($currentSizeId) {
-				echo $block->escapeHtml($block->getAttributeOptionText('tile_size', $currentSizeId));
-			}
-		}
-	?></div>
-	<div class="collection-sizes-table-container">
-		<table class="collection-sizes-table" id="sizes-table">
-			<thead>
-				<tr>
-					<th>Size (mm)</th>
-					<th>Price per tile</th>
-					<th>Price per m²</th>
-				</tr>
-			</thead>
-			<tbody>
-				<?php 
-				// Start with the sizes for the current color
-				$sizesToShow = [];
+	<!-- Select Size Button - updated to show count -->
+	<div class="collection-size-selector">
+		<button type="button" id="toggle-size-table-btn" class="action primary">
+			<span>
+				<?php
+				// Count unique sizes for current color
+				$uniqueSizes = [];
 				if ($currentColorId && isset($productsByColor[$currentColorId])) {
-					$sizesToShow = $productsByColor[$currentColorId]['products'];
-				} elseif (!empty($productsByColor)) {
-					// If no current color, show sizes for the first color
-					$firstColor = reset($productsByColor);
-					$sizesToShow = $firstColor['products'];
-					$currentColorId = key($productsByColor);
+					foreach ($productsByColor[$currentColorId]['products'] as $product) {
+						$sizeId = $product->getTileSize();
+						if (!isset($uniqueSizes[$sizeId])) {
+							$uniqueSizes[$sizeId] = true;
+						}
+					}
 				}
-				
-				// Sort by size
-				usort($sizesToShow, function($a, $b) use ($block) {
-					$sizeA = $a->getTileSize();
-					$sizeB = $b->getTileSize();
-					return strcmp($sizeA, $sizeB);
-				});
-				
-				foreach ($sizesToShow as $product):
-					$isCurrent = $product->getId() == $currentProduct->getId();
-					$tileSize = $block->getAttributeOptionText('tile_size', $product->getTileSize());
-					
-					// Get price information
-					$price = $product->getPriceInfo()->getPrice('final_price')->getValue();
-					$pricePerM2 = $product->getData('price_m2');
+				$sizeCount = count($uniqueSizes);
+				echo 'Select Size';
+				if ($sizeCount > 0) {
+					echo ' (' . $sizeCount . ' ' . ($sizeCount == 1 ? 'option' : 'options') . ')';
+				}
 				?>
-					<tr class="size-row <?= $isCurrent ? 'current-product' : '' ?>" 
-						data-color-id="<?= $block->escapeHtmlAttr($product->getTileColourName()) ?>"
-						data-size-id="<?= $block->escapeHtmlAttr($product->getTileSize()) ?>"
-						data-product-id="<?= $block->escapeHtmlAttr($product->getId()) ?>"
-						data-product-url="<?= $block->escapeUrl($product->getProductUrl()) ?>">
-						<td class="size-cell"><?= $block->escapeHtml($tileSize) ?></td>
-						<td class="price-cell"><?= $block->escapeHtml($block->getFormattedPrice($price)) ?></td>
-						<td class="price-m2-cell"><?= $block->escapeHtml($block->getFormattedPrice($pricePerM2)) ?></td>
-					</tr>
-				<?php endforeach; ?>
-			</tbody>
-		</table>
+			</span>
+		</button>
+		<?php if ($currentProduct): ?>
+			<?php 
+			$currentSizeId = $currentProduct->getTileSize();
+			if ($currentSizeId): 
+			?>
+			<span class="current-size-display">
+				Current Size: <?= $block->escapeHtml($block->getAttributeOptionText('tile_size', $currentSizeId)) ?>
+			</span>
+			<?php endif; ?>
+		<?php endif; ?>
 	</div>
 	
-	<!-- Hidden container for all product data -->
-	<div id="collection-products-data" style="display: none;" 
-		 data-current-color="<?= $block->escapeHtmlAttr($currentColorId) ?>">
-		<?php foreach ($productsByColor as $colorId => $colorGroup): ?>
-			<div class="color-data" data-color-id="<?= $block->escapeHtmlAttr($colorId) ?>">
-				<?php foreach ($colorGroup['products'] as $product): ?>
+	<!-- Size table container - initially hidden but with explicit height to ensure it can be displayed -->
+	<div id="size-table-container" style="display: none; margin-top: 20px;">
+		<h3>Available Sizes</h3>
+		<div class="collection-sizes-table-container" style="overflow: visible;">
+			<table class="collection-sizes-table" id="sizes-table" style="width: 100%;">
+				<thead>
+					<tr>
+						<th>Size (mm)</th>
+						<th>Price per tile</th>
+						<th>Price per m²</th>
+					</tr>
+				</thead>
+				<tbody>
 					<?php 
-					$tileSize = $block->getAttributeOptionText('tile_size', $product->getTileSize());
-					$isCurrent = $product->getId() == $currentProduct->getId();
-					$price = $product->getPriceInfo()->getPrice('final_price')->getValue();
-					$pricePerM2 = $product->getData('price_m2');
+					// Start with the sizes for the current color
+					$sizesToShow = [];
+					if ($currentColorId && isset($productsByColor[$currentColorId])) {
+						$sizesToShow = $productsByColor[$currentColorId]['products'];
+					} elseif (!empty($productsByColor)) {
+						// If no current color, show sizes for the first color
+						$firstColor = reset($productsByColor);
+						$sizesToShow = $firstColor['products'];
+						$currentColorId = key($productsByColor);
+					}
+					
+					// Sort by size
+					usort($sizesToShow, function($a, $b) use ($block) {
+						$sizeA = $a->getTileSize();
+						$sizeB = $b->getTileSize();
+						return strcmp($sizeA, $sizeB);
+					});
+					
+					foreach ($sizesToShow as $product):
+						$isCurrent = $product->getId() == $currentProduct->getId();
+						$tileSize = $block->getAttributeOptionText('tile_size', $product->getTileSize());
+						
+						// Get price information
+						$price = $product->getPriceInfo()->getPrice('final_price')->getValue();
+						$pricePerM2 = $product->getData('price_m2');
 					?>
-					<div class="product-data" 
-						 data-product-id="<?= $block->escapeHtmlAttr($product->getId()) ?>"
-						 data-size-id="<?= $block->escapeHtmlAttr($product->getTileSize()) ?>"
-						 data-size-name="<?= $block->escapeHtmlAttr($tileSize) ?>"
-						 data-product-url="<?= $block->escapeUrl($product->getProductUrl()) ?>"
-						 data-product-name="<?= $block->escapeHtmlAttr($product->getName()) ?>"
-						 data-product-image="<?= $block->escapeUrl($block->getProductImageUrl($product)) ?>"
-						 data-price="<?= $block->escapeHtmlAttr($price) ?>"
-						 data-price-m2="<?= $block->escapeHtmlAttr($pricePerM2) ?>"
-						 data-is-current="<?= $isCurrent ? 'true' : 'false' ?>">
-					</div>
-				<?php endforeach; ?>
-			</div>
-		<?php endforeach; ?>
+						<tr class="size-row <?= $isCurrent ? 'current-product' : '' ?>" 
+							data-color-id="<?= $block->escapeHtmlAttr($product->getTileColourName()) ?>"
+							data-size-id="<?= $block->escapeHtmlAttr($product->getTileSize()) ?>"
+							data-product-id="<?= $block->escapeHtmlAttr($product->getId()) ?>"
+							data-product-url="<?= $block->escapeUrl($product->getProductUrl()) ?>">
+							<td class="size-cell"><?= $block->escapeHtml($tileSize) ?></td>
+							<td class="price-cell"><?= $block->escapeHtml($block->getFormattedPrice($price)) ?></td>
+							<td class="price-m2-cell"><?= $block->escapeHtml($block->getFormattedPrice($pricePerM2)) ?></td>
+						</tr>
+					<?php endforeach; ?>
+				</tbody>
+			</table>
+		</div>
 	</div>
+</div><!-- End of product-collection-navigation div -->
+
+<div id="collection-products-data" style="display: none;" 
+	 data-current-color="<?= $block->escapeHtmlAttr($currentColorId) ?>">
+	<?php foreach ($productsByColor as $colorId => $colorGroup): ?>
+		<div class="color-data" data-color-id="<?= $block->escapeHtmlAttr($colorId) ?>">
+			<?php foreach ($colorGroup['products'] as $product): ?>
+				<?php 
+				$tileSize = $block->getAttributeOptionText('tile_size', $product->getTileSize());
+				$isCurrent = $product->getId() == $currentProduct->getId();
+				$price = $product->getPriceInfo()->getPrice('final_price')->getValue();
+				$pricePerM2 = $product->getData('price_m2');
+				?>
+				<div class="product-data" 
+					 data-product-id="<?= $block->escapeHtmlAttr($product->getId()) ?>"
+					 data-size-id="<?= $block->escapeHtmlAttr($product->getTileSize()) ?>"
+					 data-size-name="<?= $block->escapeHtmlAttr($tileSize) ?>"
+					 data-product-url="<?= $block->escapeUrl($product->getProductUrl()) ?>"
+					 data-product-name="<?= $block->escapeHtmlAttr($product->getName()) ?>"
+					 data-product-image="<?= $block->escapeUrl($block->getProductImageUrl($product)) ?>"
+					 data-price="<?= $block->escapeHtmlAttr($price) ?>"
+					 data-price-m2="<?= $block->escapeHtmlAttr($pricePerM2) ?>"
+					 data-is-current="<?= $isCurrent ? 'true' : 'false' ?>">
+				</div>
+			<?php endforeach; ?>
+		</div>
+	<?php endforeach; ?>
 </div>
 
 <script type="text/javascript">
 document.addEventListener('DOMContentLoaded', function() {
 	// Get the elements
 	const colorSlider = document.getElementById('color-slider');
-	const sizesTable = document.getElementById('sizes-table');
 	const colorPrevBtn = document.getElementById('color-scroll-prev');
 	const colorNextBtn = document.getElementById('color-scroll-next');
 	const dataContainer = document.getElementById('collection-products-data');
+	const toggleSizeBtn = document.getElementById('toggle-size-table-btn');
+	const sizeTableContainer = document.getElementById('size-table-container');
+	const sizesTable = document.getElementById('sizes-table');
 	
-	if (!colorSlider || !sizesTable || !dataContainer) return;
+	console.log('Toggle size button found:', !!toggleSizeBtn);
+	console.log('Size table container found:', !!sizeTableContainer);
 	
-	// Variables for drag scrolling
-	let isDown = false;
-	let startX;
-	let scrollLeft;
+	// Update button text when color changes
+	function updateSizeButtonText() {
+		// Get the current color ID
+		const currentColorId = dataContainer.getAttribute('data-current-color');
+		
+		// Count sizes for the current color
+		const colorData = dataContainer.querySelector(`.color-data[data-color-id="${currentColorId}"]`);
+		if (colorData) {
+			const products = colorData.querySelectorAll('.product-data');
+			const uniqueSizes = new Set();
+			
+			products.forEach(product => {
+				uniqueSizes.add(product.getAttribute('data-size-id'));
+			});
+			
+			const sizeCount = uniqueSizes.size;
+			const sizeText = sizeCount === 1 ? 'option' : 'options';
+			
+			// Update button text with count
+			if (toggleSizeBtn && !toggleSizeBtn.classList.contains('active')) {
+				toggleSizeBtn.querySelector('span').textContent = `Select Size (${sizeCount} ${sizeText})`;
+			}
+		}
+	}
 	
-	// Scroll distance per click (in pixels)
-	const scrollDistance = 200;
+	// Toggle size table visibility
+	if (toggleSizeBtn && sizeTableContainer) {
+		// First check if the table is already visible (might be from browser cache)
+		console.log('Initial size table display state:', sizeTableContainer.style.display);
+		
+		// Function to show the table
+		function showSizeTable() {
+			console.log('Showing size table');
+			// Use multiple methods to ensure it's shown
+			sizeTableContainer.style.display = 'block';
+			sizeTableContainer.style.visibility = 'visible';
+			sizeTableContainer.style.opacity = '1';
+			sizeTableContainer.style.height = 'auto';
+			sizeTableContainer.style.overflow = 'visible';
+			
+			// Update button
+			toggleSizeBtn.querySelector('span').textContent = 'Hide Sizes';
+			toggleSizeBtn.classList.add('active');
+			
+			console.log('Size table display after showing:', sizeTableContainer.style.display);
+			console.log('Size table offsetHeight:', sizeTableContainer.offsetHeight);
+		}
+		
+		// Function to hide the table
+		function hideSizeTable() {
+			console.log('Hiding size table');
+			sizeTableContainer.style.display = 'none';
+			
+			// Update button text to show number of options
+			updateSizeButtonText();
+			
+			toggleSizeBtn.classList.remove('active');
+		}
+		
+		// Direct click handler
+		toggleSizeBtn.onclick = function(e) {
+			e.preventDefault();
+			console.log('Toggle button clicked with onclick handler');
+			
+			let isHidden = sizeTableContainer.style.display === 'none' || 
+							sizeTableContainer.style.display === '' || 
+							window.getComputedStyle(sizeTableContainer).display === 'none';
+							
+			console.log('Is size table hidden?', isHidden, 
+						'style.display=', sizeTableContainer.style.display,
+						'computed display=', window.getComputedStyle(sizeTableContainer).display);
+			
+			if (isHidden) {
+				showSizeTable();
+			} else {
+				hideSizeTable();
+			}
+			
+			// Force layout recalculation
+			void sizeTableContainer.offsetHeight;
+		};
+	}
 	
 	// Initialize color selector functionality
 	function initColorSelectors() {
@@ -231,43 +338,38 @@ document.addEventListener('DOMContentLoaded', function() {
 				});
 				this.closest('.color-item').classList.add('current-product');
 				
-				// Update size options
-				updateSizeOptions(colorId);
-			});
-		});
-	}
-
-	// Initialize size row selection functionality
-	function initSizeRowSelectors() {
-		const sizeRows = sizesTable.querySelectorAll('tbody tr.size-row');
-		sizeRows.forEach(row => {
-			row.addEventListener('click', function(e) {
-				e.preventDefault();
-				const productUrl = this.getAttribute('data-product-url');
-				if (productUrl) {
-					window.location.href = productUrl;
-				}
+				// Update size table
+				updateSizeTable(colorId);
+				
+				// Update button text to show number of options
+				updateSizeButtonText();
 			});
 		});
 	}
 	
-	// Update size options based on selected color
-	function updateSizeOptions(colorId) {
-		// Clear current size options
+	// Update size table for selected color
+	function updateSizeTable(colorId) {
+		console.log('Updating size table for color:', colorId);
+		
+		// Get color data
+		const colorData = dataContainer.querySelector(`.color-data[data-color-id="${colorId}"]`);
+		if (!colorData) {
+			console.error('Color data not found for ID:', colorId);
+			return;
+		}
+		
+		// Get product data
+		const productElements = colorData.querySelectorAll('.product-data');
+		console.log('Found', productElements.length, 'products for color', colorId);
+		
+		// Clear existing rows
 		const tableBody = sizesTable.querySelector('tbody');
 		tableBody.innerHTML = '';
 		
-		// Get product data for the selected color
-		const colorData = dataContainer.querySelector(`.color-data[data-color-id="${colorId}"]`);
-		if (!colorData) return;
-		
-		// Get all products for this color
-		const productElements = colorData.querySelectorAll('.product-data');
-		
-		// Create a map to store unique sizes
+		// Map to store unique sizes
 		const sizeMap = new Map();
 		
-		// Collect unique size options
+		// Collect unique sizes
 		productElements.forEach(product => {
 			const sizeId = product.getAttribute('data-size-id');
 			
@@ -284,43 +386,49 @@ document.addEventListener('DOMContentLoaded', function() {
 			}
 		});
 		
-		// Sort sizes (assuming they are numerical or can be compared as strings)
-		const sortedSizes = Array.from(sizeMap.values()).sort((a, b) => {
+		// Convert to array and sort
+		const sizes = Array.from(sizeMap.values());
+		sizes.sort((a, b) => {
 			return a.name.localeCompare(b.name, undefined, {numeric: true});
 		});
 		
-		// Create size option rows
-		sortedSizes.forEach(size => {
-			const sizeRow = document.createElement('tr');
-			sizeRow.className = `size-row ${size.isCurrent ? 'current-product' : ''}`;
-			sizeRow.setAttribute('data-color-id', colorId);
-			sizeRow.setAttribute('data-size-id', size.id);
-			sizeRow.setAttribute('data-product-id', size.productId);
-			sizeRow.setAttribute('data-product-url', size.url);
+		// Create rows
+		sizes.forEach(size => {
+			const row = document.createElement('tr');
+			row.className = `size-row ${size.isCurrent ? 'current-product' : ''}`;
+			row.setAttribute('data-product-url', size.url);
 			
 			// Format prices
 			const formattedPrice = new Intl.NumberFormat('en-GB', { 
 				style: 'currency', 
 				currency: 'GBP' 
-			}).format(size.price);
+			}).format(parseFloat(size.price));
 			
 			const formattedPriceM2 = new Intl.NumberFormat('en-GB', { 
 				style: 'currency', 
 				currency: 'GBP' 
-			}).format(size.priceM2);
+			}).format(parseFloat(size.priceM2));
 			
-			// Create row cells
-			sizeRow.innerHTML = `
+			// Create cells
+			row.innerHTML = `
 				<td class="size-cell">${size.name}</td>
 				<td class="price-cell">${formattedPrice}</td>
 				<td class="price-m2-cell">${formattedPriceM2}</td>
 			`;
 			
-			tableBody.appendChild(sizeRow);
+			// Add click handler
+			row.addEventListener('click', function() {
+				window.location.href = size.url;
+			});
+			
+			// Add to table
+			tableBody.appendChild(row);
 		});
 		
-		// Re-initialize row click handlers
-		initSizeRowSelectors();
+		// If size table is currently visible, keep it visible
+		if (sizeTableContainer.style.display === 'block') {
+			sizeTableContainer.style.display = 'block';
+		}
 	}
 	
 	// Check if scrolling is needed and update button states
@@ -373,7 +481,7 @@ document.addEventListener('DOMContentLoaded', function() {
 		prevBtn.addEventListener('click', function(e) {
 			e.preventDefault();
 			slider.scrollBy({
-				left: -scrollDistance,
+				left: -200, // Scroll distance
 				behavior: 'smooth'
 			});
 			setTimeout(() => updateButtonStates(), 100); // Update after scroll animation
@@ -383,19 +491,22 @@ document.addEventListener('DOMContentLoaded', function() {
 		nextBtn.addEventListener('click', function(e) {
 			e.preventDefault();
 			slider.scrollBy({
-				left: scrollDistance,
+				left: 200, // Scroll distance
 				behavior: 'smooth'
 			});
 			setTimeout(() => updateButtonStates(), 100); // Update after scroll animation
 		});
 		
 		// Mouse drag to scroll
+		let isDown = false;
+		let startX;
+		let scrollLeft;
+		
 		slider.addEventListener('mousedown', function(e) {
 			isDown = true;
 			slider.classList.add('active');
 			startX = e.pageX - slider.offsetLeft;
 			scrollLeft = slider.scrollLeft;
-			// Prevent text selection during drag
 			e.preventDefault();
 		});
 		
@@ -419,44 +530,65 @@ document.addEventListener('DOMContentLoaded', function() {
 			updateButtonStates();
 		});
 		
-		// Touch events for mobile
-		slider.addEventListener('touchstart', function(e) {
-			isDown = true;
-			slider.classList.add('active');
-			startX = e.touches[0].pageX - slider.offsetLeft;
-			scrollLeft = slider.scrollLeft;
-		});
-		
-		slider.addEventListener('touchend', function() {
-			isDown = false;
-			slider.classList.remove('active');
-			updateButtonStates();
-		});
-		
-		slider.addEventListener('touchmove', function(e) {
-			if (!isDown) return;
-			const x = e.touches[0].pageX - slider.offsetLeft;
-			const walk = (x - startX) * 2;
-			slider.scrollLeft = scrollLeft - walk;
-			updateButtonStates();
-		});
-		
 		// Listen for scroll events
 		slider.addEventListener('scroll', function() {
 			updateButtonStates();
 		});
 	}
 	
-	// Listen for window resize
-	window.addEventListener('resize', function() {
-		updateButtonStates();
-	});
-	
-	// Initialize
+	// Initialize functionality
 	initColorSelectors();
-	initSizeRowSelectors();
 	updateButtonStates();
 	centerCurrentColor();
+	
+	// Initialize button text with size count
+	updateSizeButtonText();
+	
+	// Add simple styles for the button
+	const style = document.createElement('style');
+	style.textContent = `
+		#toggle-size-table-btn.active {
+			background-color: #e2e2e2;
+			border-color: #d0d0d0;
+			color: #333;
+		}
+		
+		/* Make sure size table is visible when displayed */
+		#size-table-container[style*="display: block"] {
+			display: block !important;
+			visibility: visible !important;
+			opacity: 1 !important;
+			height: auto !important;
+			overflow: visible !important;
+		}
+		
+		/* Make table rows clearly visible and clickable */
+		.collection-sizes-table tr.size-row {
+			cursor: pointer;
+			transition: background-color 0.2s;
+			height: auto !important;
+			visibility: visible !important;
+		}
+		
+		.collection-sizes-table tr.size-row:hover {
+			background-color: #f8f8f8 !important;
+		}
+		
+		/* Ensure the table is not collapsed */
+		.collection-sizes-table {
+			border-collapse: separate !important;
+			border-spacing: 0 !important;
+			width: 100% !important;
+		}
+		
+		/* Force visible cells */
+		.collection-sizes-table td, 
+		.collection-sizes-table th {
+			visibility: visible !important;
+			display: table-cell !important;
+		}
+	`;
+	document.head.appendChild(style);
 });
 </script>
 <?php endif; ?>

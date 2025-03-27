@@ -162,6 +162,24 @@
 	cursor: pointer;
 }
 
+/* Select Size Button */
+.collection-size-selector {
+	display: flex;
+	align-items: center;
+	margin: 15px 0;
+}
+
+.collection-size-selector button {
+	padding: 8px 15px;
+	font-weight: 600;
+}
+
+.current-size-display {
+	margin-left: 15px;
+	font-size: 14px;
+	color: #636363;
+}
+
 /* Sizes table styles */
 .collection-sizes-table-container {
 	width: 100%;
@@ -218,6 +236,107 @@
 	text-align: right;
 }
 
+/* Completely new slideover implementation */
+#cd-slideover-wrapper {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	z-index: 9999;
+}
+
+/* Page overlay for blur effect */
+.page-overlay {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background-color: rgba(0, 0, 0, 0.5);
+	backdrop-filter: blur(4px);
+	-webkit-backdrop-filter: blur(4px);
+	z-index: 9999;
+	opacity: 0;
+	transition: opacity 0.3s ease;
+}
+
+.page-overlay.active {
+	opacity: 1;
+}
+
+/* Slideover panel styles */
+.collection-size-slideover {
+	position: fixed;
+	top: 0;
+	right: -450px; /* Start outside the viewport */
+	width: 450px;
+	max-width: 90vw;
+	height: 100%;
+	background-color: #ffffff;
+	box-shadow: -5px 0 15px rgba(0, 0, 0, 0.15);
+	z-index: 10000;
+	overflow-y: auto;
+	transition: right 0.3s ease;
+}
+
+.collection-size-slideover.active {
+	right: 0; /* Move into viewport */
+}
+
+.slideover-inner {
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+}
+
+.slideover-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 15px 20px;
+	border-bottom: 1px solid #e1e1e1;
+	position: sticky;
+	top: 0;
+	background-color: #ffffff;
+	z-index: 2;
+}
+
+.slideover-header h2 {
+	margin: 0;
+	font-size: 20px;
+	font-weight: 600;
+}
+
+.slideover-header .close {
+	background: none;
+	border: none;
+	font-size: 24px;
+	cursor: pointer;
+	width: 40px;
+	height: 40px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: 50%;
+	transition: background-color 0.2s;
+}
+
+.slideover-header .close:hover {
+	background-color: #f5f5f5;
+}
+
+.slideover-content {
+	padding: 20px;
+	flex: 1;
+	overflow-y: auto;
+}
+
+/* Prevent body scrolling when slideover is open */
+body.no-scroll {
+	overflow: hidden;
+}
+
 /* For small screens adjust spacing */
 @media screen and (max-width: 480px) {
 	.collection-products {
@@ -237,5 +356,14 @@
 	.collection-sizes-table td {
 		padding: 8px 5px;
 		font-size: 12px;
+	}
+	
+	.collection-size-slideover {
+		width: 100%;
+		max-width: 100%;
+	}
+	
+	.slideover-header h2 {
+		font-size: 18px;
 	}
 }
