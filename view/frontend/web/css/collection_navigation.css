@@ -71,14 +71,14 @@
 /* Product items in carousel */
 .collection-product-item {
 	flex: 0 0 auto;
-	width: 100px;
+	width: 70px;
 	text-align: center;
 	position: relative;
 }
 
 .collection-product-image {
-	width: 100px;
-	height: 100px;
+	width: 70px;
+	height: 70px;
 	object-fit: cover;
 	border: 1px solid #e8e8e8;
 	border-radius: 3px;
@@ -357,12 +357,12 @@
 	}
 	
 	.collection-product-item {
-		width: 80px;
+		width: 70px;
 	}
 	
 	.collection-product-image {
-		width: 80px;
-		height: 80px;
+		width: 70px;
+		height: 70px;
 	}
 	
 	.collection-sizes-table th,
