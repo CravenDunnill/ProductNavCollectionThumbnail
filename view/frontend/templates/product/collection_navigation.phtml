@@ -61,20 +61,25 @@ if ($currentProduct) {
 
 if ($collectionName && !empty($displayProducts)):
 ?>
-<div id="product-collection-navigation" class="product-collection-navigation">
+<!-- Drastic solution: Force width containment with a table layout -->
+<table width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100% !important; max-width:100% !important; table-layout:fixed !important; margin:0 !important; padding:0 !important;">
+<tr>
+<td style="width:100% !important; padding:0 !important; margin:0 !important;">
+
+<div id="product-collection-navigation" class="product-collection-navigation" style="width:100% !important; max-width:100% !important; box-sizing:border-box !important; margin:0 !important; padding:0 !important; overflow:hidden !important;">
 	<div class="collection-title">
 		<h3><?= $block->escapeHtml($collectionName) ?> Collection</h3>
 	</div>
 	
 	<!-- Colour options row - moved the label below the carousel -->
-	<div class="collection-products-container">
+	<div class="collection-products-container" style="width:100% !important; max-width:100% !important; box-sizing:border-box !important;">
 		<div class="collection-nav-arrow prev" id="color-scroll-prev">
 			<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
 				<path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"/>
 			</svg>
 		</div>
 		
-		<div class="collection-products color-options" id="color-slider">
+		<div class="collection-products color-options" id="color-slider" style="width:calc(100% - 70px) !important; max-width:calc(100% - 70px) !important; box-sizing:border-box !important;">
 			<?php foreach ($productsByColor as $colorId => $colorGroup): ?>
 				<?php 
 				$isCurrentColor = ($colorId == $currentColorId);
@@ -95,8 +100,6 @@ if ($collectionName && !empty($displayProducts)):
 				// Get the smallest size product
 				$smallestSizeProduct = $firstProduct;
 				if (count($sizeProducts) > 0) {
-					// Sort products by size ID (assuming smaller ID = smaller size)
-					// You may need to adjust this logic based on how sizes are stored
 					ksort($sizeProducts);
 					$smallestSizeProduct = reset($sizeProducts);
 				}
@@ -135,8 +138,8 @@ if ($collectionName && !empty($displayProducts)):
 	?></div>
 	
 	<!-- Select Size Button - updated to show count with bold sizes -->
-	<div class="collection-size-selector">
-		<button type="button" id="toggle-size-table-btn" class="action primary">
+	<div class="collection-size-selector" style="width:100% !important; max-width:100% !important; box-sizing:border-box !important;">
+		<button type="button" id="toggle-size-table-btn" class="action primary" style="width:100% !important; max-width:100% !important;">
 			<span>
 				<?php
 				// Count unique sizes for current color
@@ -167,10 +170,10 @@ if ($collectionName && !empty($displayProducts)):
 	</div>
 	
 	<!-- Size table container - initially hidden but with explicit height to ensure it can be displayed -->
-	<div id="size-table-container" style="display: none; margin-top: 20px;">
+	<div id="size-table-container" style="display: none; margin-top: 20px; width:100% !important; max-width:100% !important; box-sizing:border-box !important;">
 		<h3>Available Sizes</h3>
-		<div class="collection-sizes-table-container" style="overflow: visible;">
-			<table class="collection-sizes-table" id="sizes-table" style="width: 100%;">
+		<div class="collection-sizes-table-container" style="overflow: visible; width:100% !important; max-width:100% !important; box-sizing:border-box !important;">
+			<table class="collection-sizes-table" id="sizes-table" style="width: 100% !important; max-width:100% !important;">
 				<thead>
 					<tr>
 						<th>Size (mm)</th>
@@ -231,6 +234,10 @@ if ($collectionName && !empty($displayProducts)):
 	</div>
 </div><!-- End of product-collection-navigation div -->
 
+</td>
+</tr>
+</table>
+
 <div id="collection-products-data" style="display: none;" 
 	 data-current-color="<?= $block->escapeHtmlAttr($currentColorId) ?>">
 	<?php foreach ($productsByColor as $colorId => $colorGroup): ?>
@@ -269,9 +276,6 @@ document.addEventListener('DOMContentLoaded', function() {
 	const sizeTableContainer = document.getElementById('size-table-container');
 	const sizesTable = document.getElementById('sizes-table');
 	
-	console.log('Toggle size button found:', !!toggleSizeBtn);
-	console.log('Size table container found:', !!sizeTableContainer);
-	
 	// Update button text when color changes - UPDATED for bold size text
 	function updateSizeButtonText() {
 		// Get the current color ID
@@ -298,12 +302,8 @@ document.addEventListener('DOMContentLoaded', function() {
 	
 	// Toggle size table visibility
 	if (toggleSizeBtn && sizeTableContainer) {
-		// First check if the table is already visible (might be from browser cache)
-		console.log('Initial size table display state:', sizeTableContainer.style.display);
-		
 		// Function to show the table
 		function showSizeTable() {
-			console.log('Showing size table');
 			// Use multiple methods to ensure it's shown
 			sizeTableContainer.style.display = 'block';
 			sizeTableContainer.style.visibility = 'visible';
@@ -314,14 +314,10 @@ document.addEventListener('DOMContentLoaded', function() {
 			// Update button - make sure this is just text, not HTML
 			toggleSizeBtn.querySelector('span').textContent = 'Hide Sizes';
 			toggleSizeBtn.classList.add('active');
-			
-			console.log('Size table display after showing:', sizeTableContainer.style.display);
-			console.log('Size table offsetHeight:', sizeTableContainer.offsetHeight);
 		}
 		
 		// Function to hide the table
 		function hideSizeTable() {
-			console.log('Hiding size table');
 			sizeTableContainer.style.display = 'none';
 			
 			// Update button text to show number of options
@@ -333,15 +329,10 @@ document.addEventListener('DOMContentLoaded', function() {
 		// Direct click handler
 		toggleSizeBtn.onclick = function(e) {
 			e.preventDefault();
-			console.log('Toggle button clicked with onclick handler');
 			
 			let isHidden = sizeTableContainer.style.display === 'none' || 
 							sizeTableContainer.style.display === '' || 
 							window.getComputedStyle(sizeTableContainer).display === 'none';
-							
-			console.log('Is size table hidden?', isHidden, 
-						'style.display=', sizeTableContainer.style.display,
-						'computed display=', window.getComputedStyle(sizeTableContainer).display);
 			
 			if (isHidden) {
 				showSizeTable();
@@ -384,18 +375,14 @@ document.addEventListener('DOMContentLoaded', function() {
 	
 	// Update size table for selected color
 	function updateSizeTable(colorId) {
-		console.log('Updating size table for color:', colorId);
-		
 		// Get color data
 		const colorData = dataContainer.querySelector(`.color-data[data-color-id="${colorId}"]`);
 		if (!colorData) {
-			console.error('Color data not found for ID:', colorId);
 			return;
 		}
 		
 		// Get product data
 		const productElements = colorData.querySelectorAll('.product-data');
-		console.log('Found', productElements.length, 'products for color', colorId);
 		
 		// Clear existing rows
 		const tableBody = sizesTable.querySelector('tbody');
@@ -472,8 +459,6 @@ document.addEventListener('DOMContentLoaded', function() {
 	}
 	
 	function updateSliderButtonStates(slider, prevBtn, nextBtn) {
-		const isScrollable = slider.scrollWidth > slider.clientWidth;
-		
 		// Always show both buttons
 		prevBtn.style.display = 'flex';
 		nextBtn.style.display = 'flex';
@@ -571,7 +556,6 @@ document.addEventListener('DOMContentLoaded', function() {
 		});
 	}
 	
-	// We don't need the click handlers anymore since we're using links
 	// Initialize functionality
 	initColorSelectors();
 	updateButtonStates();
@@ -580,133 +564,36 @@ document.addEventListener('DOMContentLoaded', function() {
 	// Initialize button text with size count
 	updateSizeButtonText();
 	
-	// Add simple styles for the button and links
-	const style = document.createElement('style');
-	style.textContent = `
-		#toggle-size-table-btn {
-			background-color: #ffffff !important;
-			border: 1px solid #002C5A !important;
-			color: #333333 !important;
-			border-radius: 0 !important;
-			text-align: left !important;
-			padding: 0 !important;
-			display: flex !important;
-			justify-content: space-between !important;
-			align-items: center !important;
-			overflow: hidden !important;
+	// CONTINUOUS WIDTH ENFORCEMENT - Check every 100ms to ensure width constraints are maintained
+	setInterval(function() {
+		// Get the carousel container and all its child components
+		const carousel = document.querySelector('.product-collection-navigation');
+		const tableCell = carousel.closest('td');
+		
+		// Ensure table cell stays at 100%
+		if (tableCell) {
+			tableCell.style.width = '100%';
+			tableCell.style.maxWidth = '100%';
 		}
 		
-		#toggle-size-table-btn span {
-			padding: 10px 15px !important;
-			text-align: left !important;
-			display: inline-block !important;
-			width: calc(100% - 50px) !important;
-			box-sizing: border-box !important;
-			font-weight: normal !important;
-		}
+		// Force carousel to stay at 100%
+		carousel.style.width = '100%';
+		carousel.style.maxWidth = '100%';
 		
-		#toggle-size-table-btn span .size-count {
-			font-weight: bold !important;
-		}
+		// Force all inner elements to respect width constraints
+		const innerContainers = carousel.querySelectorAll('.collection-products-container, .collection-size-selector, #size-table-container, .collection-sizes-table-container');
+		innerContainers.forEach(container => {
+			container.style.width = '100%';
+			container.style.maxWidth = '100%';
+		});
 		
-		#toggle-size-table-btn:after {
-			content: ">" !important;
-			position: absolute !important;
-			right: 0 !important;
-			top: 0 !important;
-			width: 50px !important;
-			height: 100% !important;
-			display: flex !important;
-			align-items: center !important;
-			justify-content: center !important;
-			background-color: #F4F9FF !important;
-			color: #002C5A !important;
-			font-weight: bold !important;
-			font-size: 18px !important;
-			transition: all 0.2s ease !important;
+		// Special handling for the carousel itself
+		const productsSlider = carousel.querySelector('.collection-products');
+		if (productsSlider) {
+			productsSlider.style.width = 'calc(100% - 70px)';
+			productsSlider.style.maxWidth = 'calc(100% - 70px)';
 		}
-		
-		#toggle-size-table-btn:hover:after,
-		#toggle-size-table-btn:focus:after {
-			background-color: #002C5A !important;
-			color: #ffffff !important;
-		}
-		
-		#toggle-size-table-btn.active {
-			background-color: #ffffff !important;
-			border-color: #002C5A !important;
-			color: #333333 !important;
-		}
-		
-		#size-table-container[style*="display: block"] {
-			display: block !important;
-			visibility: visible !important;
-			opacity: 1 !important;
-			height: auto !important;
-			overflow: visible !important;
-		}
-		
-		.thumbnail-wrapper {
-			position: relative;
-			display: inline-block;
-		}
-		
-		.size-count-badge {
-			position: absolute;
-			bottom: 0;
-			left: 0;
-			right: 0;
-			background-color: rgba(255, 85, 1, 0.9);
-			color: white;
-			padding: 1px 5px;
-			font-size: 11px;
-			font-weight: 600;
-			text-align: center;
-			border-bottom-left-radius: 3px;
-			border-bottom-right-radius: 3px;
-		}
-		
-		.collection-products-container {
-			margin-top: 10px;
-			margin-bottom: 5px;
-		}
-		
-		.collection-row-label {
-			margin: 8px 0 15px;
-			text-align: left;
-		}
-		
-		.collection-sizes-table .size-link {
-			display: block;
-			color: inherit;
-			text-decoration: none;
-			padding: 4px 0;
-			width: 100%;
-		}
-		
-		.collection-sizes-table tr.size-row {
-			transition: background-color 0.2s;
-			height: auto !important;
-			visibility: visible !important;
-		}
-		
-		.collection-sizes-table tr.size-row:hover {
-			background-color: #f8f8f8 !important;
-		}
-		
-		.collection-sizes-table {
-			border-collapse: separate !important;
-			border-spacing: 0 !important;
-			width: 100% !important;
-		}
-		
-		.collection-sizes-table td, 
-		.collection-sizes-table th {
-			visibility: visible !important;
-			display: table-cell !important;
-		}
-	`;
-	document.head.appendChild(style);
+	}, 100);
 });
 </script>
 <?php endif; ?>
