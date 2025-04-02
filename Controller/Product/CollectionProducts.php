@@ -85,7 +85,7 @@ class CollectionProducts extends Action
 				'url' => $product->getProductUrl(),
 				'image' => $this->imageHelper->init($product, 'product_small_image')
 					->setImageFile($product->getSmallImage())
-					->resize(100, 100)
+					->resize(140, 140)
 					->getUrl(),
 				'color_name' => $product->getTileColourName(),
 				'tile_size' => $product->getTileSize()

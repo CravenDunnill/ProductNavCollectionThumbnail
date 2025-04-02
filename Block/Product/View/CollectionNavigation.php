@@ -237,7 +237,7 @@ class CollectionNavigation extends Template
 						
 						return $this->imageHelper->init($childProduct, 'product_small_image')
 							->setImageFile($childProduct->getSmallImage())
-							->resize(100, 100)
+							->resize(140, 140)
 							->getUrl();
 					} catch (\Exception $e) {
 						$this->_logger->error('Error loading child product: ' . $e->getMessage());
@@ -249,7 +249,7 @@ class CollectionNavigation extends Template
 		// Fallback to current product image
 		return $this->imageHelper->init($product, 'product_small_image')
 			->setImageFile($product->getSmallImage())
-			->resize(100, 100)
+			->resize(140, 140)
 			->getUrl();
 	}
 	

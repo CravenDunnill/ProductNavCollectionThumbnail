@@ -162,20 +162,143 @@
 	cursor: pointer;
 }
 
-/* Select Size Button */
-.collection-size-selector {
-	display: flex;
-	align-items: center;
+/* Select Size Button - UPDATED STYLES */
+.product-collection-navigation .collection-size-selector {
+	display: block;
 	margin: 15px 0;
 }
 
-.collection-size-selector button {
-	padding: 8px 15px;
-	font-weight: 600;
+.product-collection-navigation .collection-size-selector button.action.primary {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	width: 100%;
+	padding: 0;
+	background-color: #ffffff !important;
+	border: 1px solid #002C5A !important;
+	border-radius: 0 !important;
+	color: #333333 !important;
+	font-weight: 400 !important;
+	box-shadow: none;
+	font-size: 14px;
+	position: relative;
+	overflow: hidden;
 }
 
+/* Text part of the button */
+.product-collection-navigation .collection-size-selector button.action.primary span {
+	padding: 10px 15px;
+	text-align: left !important;
+	font-weight: normal !important;
+	display: inline-block;
+	width: calc(100% - 50px);
+	box-sizing: border-box;
+}
+
+/* Bold part of text */
+.product-collection-navigation .collection-size-selector button.action.primary span .size-count {
+	font-weight: bold !important;
+}
+
+/* Arrow part of the button */
+.product-collection-navigation .collection-size-selector button.action.primary:after {
+	content: ">";
+	position: absolute;
+	right: 0;
+	top: 0;
+	width: 50px;
+	height: 100%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background-color: #F4F9FF;
+	color: #002C5A;
+	font-weight: bold;
+	font-size: 18px;
+	transition: all 0.2s ease;
+}
+
+/* Hover state */
+.product-collection-navigation .collection-size-selector button.action.primary:hover,
+.product-collection-navigation .collection-size-selector button.action.primary:focus {
+	border-color: #002C5A !important;
+}
+
+/* Arrow hover state */
+.product-collection-navigation .collection-size-selector button.action.primary:hover:after,
+.product-collection-navigation .collection-size-selector button.action.primary:focus:after {
+	background-color: #002C5A;
+	color: #ffffff;
+}
+
+/* Active state */
+.product-collection-navigation .collection-size-selector button.action.primary.active {
+	background-color: #ffffff !important;
+	border-color: #002C5A !important;
+	color: #333333 !important;
+}
+
+/* Override styling for button added by JavaScript */
+#toggle-size-table-btn {
+	background-color: #ffffff !important;
+	border: 1px solid #002C5A !important;
+	color: #333333 !important;
+	border-radius: 0 !important;
+	text-align: left !important;
+	padding: 0 !important;
+	display: flex !important;
+	justify-content: space-between !important;
+	align-items: center !important;
+	overflow: hidden !important;
+}
+
+#toggle-size-table-btn span {
+	padding: 10px 15px !important;
+	text-align: left !important;
+	display: inline-block !important;
+	width: calc(100% - 50px) !important;
+	box-sizing: border-box !important;
+	font-weight: normal !important;
+}
+
+#toggle-size-table-btn span .size-count {
+	font-weight: bold !important;
+}
+
+#toggle-size-table-btn:after {
+	content: ">" !important;
+	position: absolute !important;
+	right: 0 !important;
+	top: 0 !important;
+	width: 50px !important;
+	height: 100% !important;
+	display: flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	background-color: #F4F9FF !important;
+	color: #002C5A !important;
+	font-weight: bold !important;
+	font-size: 18px !important;
+	transition: all 0.2s ease !important;
+}
+
+#toggle-size-table-btn:hover:after,
+#toggle-size-table-btn:focus:after {
+	background-color: #002C5A !important;
+	color: #ffffff !important;
+}
+
+#toggle-size-table-btn.active {
+	background-color: #ffffff !important;
+	border-color: #002C5A !important;
+	color: #333333 !important;
+}
+
+/* Display current size below the button */
 .current-size-display {
-	margin-left: 15px;
+	display: block;
+	margin-top: 10px;
+	margin-left: 0;
 	font-size: 14px;
 	color: #636363;
 }
