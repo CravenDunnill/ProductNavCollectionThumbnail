@@ -79,7 +79,8 @@
 .collection-product-image {
 	width: 70px;
 	height: 70px;
-	object-fit: cover;
+	object-fit: cover; /* This maintains the aspect ratio by cropping */
+	object-position: center; /* Centers the image within the frame */
 	border: 1px solid #e8e8e8;
 	border-radius: 3px;
 	transition: border-color 0.3s;
@@ -333,6 +334,9 @@
 .thumbnail-wrapper {
 	position: relative;
 	display: inline-block;
+	width: 70px;
+	height: 70px;
+	overflow: hidden; /* Ensure any overflowing parts of the image are hidden */
 }
 
 .size-count-badge {

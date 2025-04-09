@@ -213,7 +213,7 @@ class CollectionNavigation extends Template
 	}
 
 	/**
-	 * Get image url for product
+	 * Get square image url for product using swatch image
 	 *
 	 * @param \Magento\Catalog\Model\Product $product
 	 * @return string
@@ -226,30 +226,62 @@ class CollectionNavigation extends Template
 			if (!empty($children)) {
 				// Use the first child product for the image
 				$firstChild = reset($children);
-				if ($firstChild->getSmallImage() && $firstChild->getSmallImage() != 'no_selection') {
-					// Load the full child product to ensure we have all attributes
-					try {
-						$childProduct = $this->productRepository->getById(
-							$firstChild->getId(), 
-							false, 
-							$this->storeManager->getStore()->getId()
-						);
-						
+				try {
+					$childProduct = $this->productRepository->getById(
+						$firstChild->getId(), 
+						false, 
+						$this->storeManager->getStore()->getId()
+					);
+					
+					// Try to use swatch image first
+					if ($childProduct->getSwatchImage() && $childProduct->getSwatchImage() != 'no_selection') {
+						return $this->imageHelper->init($childProduct, 'product_swatch_image')
+							->setImageFile($childProduct->getSwatchImage())
+							->resize(140)
+							->constrainOnly(false)
+							->keepAspectRatio(false)
+							->keepFrame(true)
+							->keepTransparency(true)
+							->getUrl();
+					}
+					
+					// Fallback to small image if swatch not available
+					if ($childProduct->getSmallImage() && $childProduct->getSmallImage() != 'no_selection') {
 						return $this->imageHelper->init($childProduct, 'product_small_image')
 							->setImageFile($childProduct->getSmallImage())
-							->resize(140, 140)
+							->resize(140)
+							->constrainOnly(false)
+							->keepAspectRatio(false)
+							->keepFrame(true)
+							->keepTransparency(true)
 							->getUrl();
-					} catch (\Exception $e) {
-						$this->_logger->error('Error loading child product: ' . $e->getMessage());
 					}
+				} catch (\Exception $e) {
+					$this->_logger->error('Error loading child product: ' . $e->getMessage());
 				}
 			}
 		}
 		
-		// Fallback to current product image
+		// Try to use swatch image first
+		if ($product->getSwatchImage() && $product->getSwatchImage() != 'no_selection') {
+			return $this->imageHelper->init($product, 'product_swatch_image')
+				->setImageFile($product->getSwatchImage())
+				->resize(140)
+				->constrainOnly(false)
+				->keepAspectRatio(false)
+				->keepFrame(true)
+				->keepTransparency(true)
+				->getUrl();
+		}
+		
+		// Fallback to small image if swatch not available
 		return $this->imageHelper->init($product, 'product_small_image')
 			->setImageFile($product->getSmallImage())
-			->resize(140, 140)
+			->resize(140)
+			->constrainOnly(false)
+			->keepAspectRatio(false)
+			->keepFrame(true)
+			->keepTransparency(true)
 			->getUrl();
 	}
 	

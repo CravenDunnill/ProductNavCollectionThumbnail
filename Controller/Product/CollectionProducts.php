@@ -79,14 +79,33 @@ class CollectionProducts extends Action
 				continue;
 			}
 			
+			// Determine which image to use (swatch first, then small image as fallback)
+			$imageUrl = '';
+			if ($product->getSwatchImage() && $product->getSwatchImage() != 'no_selection') {
+				$imageUrl = $this->imageHelper->init($product, 'product_swatch_image')
+					->setImageFile($product->getSwatchImage())
+					->resize(140)
+					->constrainOnly(false)
+					->keepAspectRatio(false)
+					->keepFrame(true)
+					->keepTransparency(true)
+					->getUrl();
+			} else {
+				$imageUrl = $this->imageHelper->init($product, 'product_small_image')
+					->setImageFile($product->getSmallImage())
+					->resize(140)
+					->constrainOnly(false)
+					->keepAspectRatio(false)
+					->keepFrame(true)
+					->keepTransparency(true)
+					->getUrl();
+			}
+			
 			$productData[] = [
 				'id' => $product->getId(),
 				'name' => $product->getName(),
 				'url' => $product->getProductUrl(),
-				'image' => $this->imageHelper->init($product, 'product_small_image')
-					->setImageFile($product->getSmallImage())
-					->resize(140, 140)
-					->getUrl(),
+				'image' => $imageUrl,
 				'color_name' => $product->getTileColourName(),
 				'tile_size' => $product->getTileSize()
 			];
