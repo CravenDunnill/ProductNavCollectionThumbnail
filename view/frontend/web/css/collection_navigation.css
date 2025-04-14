@@ -1,3 +1,25 @@
+/* Update PRODUCT PAGE */
+
+.product-collection-navigation,
+.tile-calculator-container {
+	background-color: #ECEAE4;
+	color: #122C58;
+	border-radius: 6px;
+	padding: 10px;
+}
+
+.product-collection-navigation h3,
+.tile-calculator-container h3 {
+	
+	font-size: 16px;
+	margin: 0;
+	font-weight: 200;
+	color: #122C58;
+}
+
+
+
+
 /* Main container - force it to match parent width */
 .product-collection-navigation {
 	width: 100% !important;
@@ -12,20 +34,6 @@
 	margin-bottom: 30px !important;
 }
 
-/* Collection title styling */
-.collection-title h3 {
-	margin-top: 0;
-	margin-bottom: 15px;
-	font-size: 18px;
-	font-weight: 600;
-}
-
-.collection-row-label {
-	font-size: 14px;
-	font-weight: 600;
-	margin: 15px 0 8px;
-	color: #333;
-}
 
 /* Carousel container with arrows - ensure it respects parent width */
 .collection-products-container {
@@ -136,13 +144,13 @@
 /* Navigation arrows - fix sizing and spacing */
 .collection-nav-arrow {
 	position: relative;
-	width: 30px !important;
-	height: 30px !important;
-	min-width: 30px !important;
-	flex: 0 0 30px !important;
-	background: rgba(255, 255, 255, 0.9);
-	border-radius: 50%;
-	border: 1px solid #e8e8e8;
+	width: 40px !important;
+	height: 40px !important;
+	min-width: 40px !important;
+	flex: 0 0 40px !important;
+	background: #0B1215;
+	border-radius: 6px;
+	border: 1px solid #0B1215;
 	display: flex !important;
 	align-items: center !important;
 	justify-content: center !important;
@@ -154,6 +162,10 @@
 	padding: 0 !important;
 }
 
+.collection-nav-arrow svg {
+  color: white;
+}
+
 .collection-nav-arrow.prev {
 	order: 0;
 }
@@ -163,8 +175,8 @@
 }
 
 .collection-nav-arrow:hover {
-	background: rgba(255, 255, 255, 1);
-	border-color: #ff5501;
+	background: #DB804A;
+	border-color: #DB804A;
 }
 
 .collection-nav-arrow.disabled {
@@ -376,9 +388,9 @@
 	}
 	
 	.collection-nav-arrow {
-		width: 25px !important;
-		height: 25px !important;
-		min-width: 25px !important;
-		flex: 0 0 25px !important;
+		width: 35px !important;
+		height: 35px !important;
+		min-width: 35px !important;
+		flex: 0 0 35px !important;
 	}
 }
