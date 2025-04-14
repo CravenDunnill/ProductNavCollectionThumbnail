@@ -279,6 +279,10 @@ document.addEventListener('DOMContentLoaded', function() {
 	const sizeTableContainer = document.getElementById('size-table-container');
 	const sizesTable = document.getElementById('sizes-table');
 	
+	// Set initial state of arrows (hidden by default until we check if needed)
+	colorPrevBtn.style.display = 'none';
+	colorNextBtn.style.display = 'none';
+	
 	// Update button text when color changes - UPDATED for bold size text
 	function updateSizeButtonText() {
 		// Get the current color ID
@@ -463,24 +467,57 @@ document.addEventListener('DOMContentLoaded', function() {
 	
 	function updateSliderButtonStates(slider, prevBtn, nextBtn) {
 		// Check if scrolling is possible at all
-		const canScroll = slider.scrollWidth > slider.clientWidth;
+		const scrollableWidth = slider.scrollWidth;
+		const containerWidth = slider.clientWidth;
+		const canScroll = scrollableWidth > containerWidth + 2; // Add small buffer for rounding errors
+		const scrollbarContainer = document.querySelector('.color-scrollbar-container');
 		
-		// Only show arrows if scrolling is possible
+		// Hide both arrows and adjust container when no scrolling is needed
 		if (!canScroll) {
 			prevBtn.style.display = 'none';
 			nextBtn.style.display = 'none';
+			slider.style.width = '100%';
+			slider.style.maxWidth = '100%';
+			slider.style.marginLeft = '0';
+			slider.style.marginRight = '0';
+			
+			// Also adjust scrollbar width to match
+			if (scrollbarContainer) {
+				scrollbarContainer.style.width = '100%';
+			}
 			return;
+		} else {
+			// Reset slider width when arrows are needed
+			slider.style.width = 'calc(100% - 70px)';
+			slider.style.maxWidth = 'calc(100% - 70px)';
+			slider.style.marginLeft = '';
+			slider.style.marginRight = '';
+			
+			// Reset scrollbar width to match
+			if (scrollbarContainer) {
+				scrollbarContainer.style.width = 'calc(100% - 80px)';
+			}
 		}
 		
 		// Show/hide based on scroll position
 		if (slider.scrollLeft <= 0) {
 			prevBtn.style.display = 'none';
+			// Give extra space to slider from left
+			slider.style.marginLeft = '0';
+			slider.style.width = 'calc(100% - 40px)';
+			slider.style.maxWidth = 'calc(100% - 40px)';
 		} else {
 			prevBtn.style.display = 'flex';
+			slider.style.marginLeft = '';
 		}
 		
 		if (slider.scrollLeft + slider.clientWidth >= slider.scrollWidth - 5) {
 			nextBtn.style.display = 'none';
+			// Give extra space to slider from right if left arrow is showing
+			if (prevBtn.style.display === 'flex') {
+				slider.style.width = 'calc(100% - 40px)';
+				slider.style.maxWidth = 'calc(100% - 40px)';
+			}
 		} else {
 			nextBtn.style.display = 'flex';
 		}
@@ -728,11 +765,10 @@ document.addEventListener('DOMContentLoaded', function() {
 			container.style.maxWidth = '100%';
 		});
 		
-		// Special handling for the carousel itself
+		// Special handling for the carousel itself - don't override our dynamic sizing
 		const productsSlider = carousel.querySelector('.collection-products');
-		if (productsSlider) {
-			productsSlider.style.width = 'calc(100% - 70px)';
-			productsSlider.style.maxWidth = 'calc(100% - 70px)';
+		if (productsSlider && !productsSlider.style.width.includes('%')) {
+			updateButtonStates(); // Re-check if arrows are needed
 		}
 	}, 100);
 });
