@@ -59,12 +59,32 @@ if ($currentProduct) {
 	}
 }
 
+// Count unique sizes for current color
+$uniqueSizes = [];
+if ($currentColorId && isset($productsByColor[$currentColorId])) {
+	foreach ($productsByColor[$currentColorId]['products'] as $product) {
+		$sizeId = $product->getTileSize();
+		if (!isset($uniqueSizes[$sizeId])) {
+			$uniqueSizes[$sizeId] = true;
+		}
+	}
+}
+$sizeCount = count($uniqueSizes);
+
 if ($collectionName && !empty($displayProducts)):
 ?>
 <!-- Drastic solution: Force width containment with a table layout -->
 <table width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100% !important; max-width:100% !important; table-layout:fixed !important; margin:0 !important; padding:0 !important;">
 <tr>
 <td style="width:100% !important; padding:0 !important; margin:0 !important;">
+
+<?php
+// Add a class to the body if it's a configurable product
+if ($block->isCurrentProductConfigurable()): ?>
+<script>
+	document.body.classList.add('configurable-product');
+</script>
+<?php endif; ?>
 
 <div id="product-collection-navigation" class="product-collection-navigation">
 	<div class="collection-title">
@@ -130,22 +150,16 @@ if ($collectionName && !empty($displayProducts)):
 		</div>
 	</div>
 	
+	<!-- Size options heading - similar to collection title -->
+	<div class="collection-title size-title">
+		<h3><b><?= $sizeCount == 1 ? 'Size' : 'Sizes' ?></b> (<?= $sizeCount ?> <?= $sizeCount == 1 ? 'option' : 'options' ?>)</h3>
+	</div>
+	
 	<!-- Select Size Button - updated to show count with bold sizes -->
 	<div class="collection-size-selector" style="width:100% !important; max-width:100% !important; box-sizing:border-box !important;">
 		<button type="button" id="toggle-size-table-btn" class="action primary" style="width:100% !important; max-width:100% !important;">
 			<span>
 				<?php
-				// Count unique sizes for current color
-				$uniqueSizes = [];
-				if ($currentColorId && isset($productsByColor[$currentColorId])) {
-					foreach ($productsByColor[$currentColorId]['products'] as $product) {
-						$sizeId = $product->getTileSize();
-						if (!isset($uniqueSizes[$sizeId])) {
-							$uniqueSizes[$sizeId] = true;
-						}
-					}
-				}
-				$sizeCount = count($uniqueSizes);
 				echo 'Choose from <span class="size-count">' . $sizeCount . ' size' . ($sizeCount == 1 ? '' : 's') . '</span>';
 				?>
 			</span>
@@ -442,21 +456,27 @@ document.addEventListener('DOMContentLoaded', function() {
 	}
 	
 	function updateSliderButtonStates(slider, prevBtn, nextBtn) {
-		// Always show both buttons
-		prevBtn.style.display = 'flex';
-		nextBtn.style.display = 'flex';
+		// Check if scrolling is possible at all
+		const canScroll = slider.scrollWidth > slider.clientWidth;
 		
-		// Update disabled state
+		// Only show arrows if scrolling is possible
+		if (!canScroll) {
+			prevBtn.style.display = 'none';
+			nextBtn.style.display = 'none';
+			return;
+		}
+		
+		// Show/hide based on scroll position
 		if (slider.scrollLeft <= 0) {
-			prevBtn.classList.add('disabled');
+			prevBtn.style.display = 'none';
 		} else {
-			prevBtn.classList.remove('disabled');
+			prevBtn.style.display = 'flex';
 		}
 		
 		if (slider.scrollLeft + slider.clientWidth >= slider.scrollWidth - 5) {
-			nextBtn.classList.add('disabled');
+			nextBtn.style.display = 'none';
 		} else {
-			nextBtn.classList.remove('disabled');
+			nextBtn.style.display = 'flex';
 		}
 	}
 	
@@ -546,6 +566,11 @@ document.addEventListener('DOMContentLoaded', function() {
 	
 	// Initialize button text with size count
 	updateSizeButtonText();
+	
+	// Add resize event listener to check if chevrons are needed when window resizes
+	window.addEventListener('resize', function() {
+		updateButtonStates();
+	});
 	
 	// CONTINUOUS WIDTH ENFORCEMENT - Check every 100ms to ensure width constraints are maintained
 	setInterval(function() {
