@@ -150,6 +150,12 @@ if ($block->isCurrentProductConfigurable()): ?>
 		</div>
 	</div>
 	
+	<!-- Custom scroll bar for color slider -->
+	<div class="color-scrollbar-container">
+		<div class="color-scrollbar-track"></div>
+		<div class="color-scrollbar-thumb"></div>
+	</div>
+	
 	<!-- Size options heading - similar to collection title -->
 	<div class="collection-title size-title">
 		<h3><b><?= $sizeCount == 1 ? 'Size' : 'Sizes' ?></b> (<?= $sizeCount ?> <?= $sizeCount == 1 ? 'option' : 'options' ?>)</h3>
@@ -496,6 +502,122 @@ document.addEventListener('DOMContentLoaded', function() {
 		}
 	}
 	
+	// Update the custom scrollbar to reflect slider position
+	function updateScrollbarThumb() {
+		const scrollbar = document.querySelector('.color-scrollbar-thumb');
+		const scrollbarContainer = document.querySelector('.color-scrollbar-container');
+		if (!scrollbar || !colorSlider || !scrollbarContainer) return;
+		
+		// Calculate total scrollable width (content width - visible width)
+		const scrollableWidth = colorSlider.scrollWidth - colorSlider.clientWidth;
+		if (scrollableWidth <= 0) {
+			// If no scrolling is needed, hide the scrollbar container
+			scrollbarContainer.style.display = 'none';
+			return;
+		}
+		
+		// Show the scrollbar container
+		scrollbarContainer.style.display = 'block';
+		
+		// Calculate the visible portion ratio (how much of content is visible)
+		const visibleRatio = colorSlider.clientWidth / colorSlider.scrollWidth;
+		
+		// Calculate the thumb width (at least 20px or proportional to visible content)
+		const thumbWidth = Math.max(20, visibleRatio * 100);
+		scrollbar.style.width = thumbWidth + '%';
+		
+		// Calculate the position (how far scrolled)
+		const scrollRatio = colorSlider.scrollLeft / scrollableWidth;
+		const maxPosition = 100 - thumbWidth; // Maximum percentage the thumb can move
+		const thumbPosition = scrollRatio * maxPosition;
+		scrollbar.style.left = thumbPosition + '%';
+	}
+	
+	// Add click and drag functionality to the scrollbar
+	function setupScrollbarInteraction() {
+		const scrollbarThumb = document.querySelector('.color-scrollbar-thumb');
+		const scrollbarContainer = document.querySelector('.color-scrollbar-container');
+		
+		if (!scrollbarThumb || !scrollbarContainer || !colorSlider) return;
+		
+		// Make cursor show pointer on hover
+		scrollbarContainer.style.cursor = 'pointer';
+		
+		// Click on the scrollbar track to jump to that position
+		scrollbarContainer.addEventListener('click', function(event) {
+			// Ignore clicks on the thumb itself
+			if (event.target === scrollbarThumb) return;
+			
+			// Get click position relative to the track
+			const rect = scrollbarContainer.getBoundingClientRect();
+			const clickPositionX = event.clientX - rect.left;
+			const trackWidth = rect.width;
+			
+			// Calculate the click position as a percentage
+			const clickRatio = clickPositionX / trackWidth;
+			
+			// Calculate new scroll position
+			const scrollableWidth = colorSlider.scrollWidth - colorSlider.clientWidth;
+			const newScrollLeft = clickRatio * scrollableWidth;
+			
+			// Smooth scroll to new position
+			colorSlider.scrollTo({
+				left: newScrollLeft,
+				behavior: 'smooth'
+			});
+		});
+		
+		// Thumb dragging
+		let isDragging = false;
+		let startX;
+		let startLeft;
+		
+		// Mouse down on thumb
+		scrollbarThumb.addEventListener('mousedown', function(event) {
+			isDragging = true;
+			scrollbarThumb.style.transition = 'none'; // Disable transition during drag
+			startX = event.clientX;
+			startLeft = parseFloat(scrollbarThumb.style.left) || 0;
+			event.stopPropagation(); // Prevent click on track
+			
+			// Add temporary event listeners
+			document.addEventListener('mousemove', onMouseMove);
+			document.addEventListener('mouseup', onMouseUp);
+		});
+		
+		// Mouse move handler
+		function onMouseMove(event) {
+			if (!isDragging) return;
+			
+			const rect = scrollbarContainer.getBoundingClientRect();
+			const trackWidth = rect.width;
+			const thumbWidth = scrollbarThumb.offsetWidth;
+			const maxPositionPercent = 100 - (thumbWidth / trackWidth * 100);
+			
+			// Calculate new position
+			let moveX = event.clientX - startX;
+			let newLeft = Math.min(Math.max(0, startLeft + (moveX / trackWidth * 100)), maxPositionPercent);
+			
+			// Update thumb position
+			scrollbarThumb.style.left = newLeft + '%';
+			
+			// Calculate and update slider scroll position
+			const scrollableWidth = colorSlider.scrollWidth - colorSlider.clientWidth;
+			const scrollRatio = newLeft / maxPositionPercent;
+			colorSlider.scrollLeft = scrollRatio * scrollableWidth;
+		}
+		
+		// Mouse up handler
+		function onMouseUp() {
+			isDragging = false;
+			scrollbarThumb.style.transition = 'width 0.1s ease, left 0.1s ease'; // Restore transition
+			
+			// Remove temporary event listeners
+			document.removeEventListener('mousemove', onMouseMove);
+			document.removeEventListener('mouseup', onMouseUp);
+		}
+	}
+	
 	// Set up event listeners for color slider
 	setupSlider(colorSlider, colorPrevBtn, colorNextBtn);
 	
@@ -507,7 +629,10 @@ document.addEventListener('DOMContentLoaded', function() {
 				left: -200, // Scroll distance
 				behavior: 'smooth'
 			});
-			setTimeout(() => updateButtonStates(), 100); // Update after scroll animation
+			setTimeout(() => {
+				updateButtonStates();
+				updateScrollbarThumb();
+			}, 100); // Update after scroll animation
 		});
 		
 		// Scroll right button click
@@ -517,7 +642,10 @@ document.addEventListener('DOMContentLoaded', function() {
 				left: 200, // Scroll distance
 				behavior: 'smooth'
 			});
-			setTimeout(() => updateButtonStates(), 100); // Update after scroll animation
+			setTimeout(() => {
+				updateButtonStates();
+				updateScrollbarThumb();
+			}, 100); // Update after scroll animation
 		});
 		
 		// Mouse drag to scroll
@@ -542,6 +670,7 @@ document.addEventListener('DOMContentLoaded', function() {
 			isDown = false;
 			slider.classList.remove('active');
 			updateButtonStates();
+			updateScrollbarThumb();
 		});
 		
 		slider.addEventListener('mousemove', function(e) {
@@ -551,11 +680,13 @@ document.addEventListener('DOMContentLoaded', function() {
 			const walk = (x - startX) * 2; // Scroll speed multiplier
 			slider.scrollLeft = scrollLeft - walk;
 			updateButtonStates();
+			updateScrollbarThumb();
 		});
 		
 		// Listen for scroll events
 		slider.addEventListener('scroll', function() {
 			updateButtonStates();
+			updateScrollbarThumb();
 		});
 	}
 	
@@ -563,13 +694,15 @@ document.addEventListener('DOMContentLoaded', function() {
 	initColorSelectors();
 	updateButtonStates();
 	centerCurrentColor();
+	updateScrollbarThumb(); // Initialize scrollbar position
+	setupScrollbarInteraction(); // Setup scrollbar interaction (click and drag)
 	
 	// Initialize button text with size count
 	updateSizeButtonText();
 	
-	// Add resize event listener to check if chevrons are needed when window resizes
 	window.addEventListener('resize', function() {
 		updateButtonStates();
+		updateScrollbarThumb();
 	});
 	
 	// CONTINUOUS WIDTH ENFORCEMENT - Check every 100ms to ensure width constraints are maintained

@@ -163,6 +163,37 @@
 	padding: 0 !important;
 }
 
+/* Custom scrollbar for color slider */
+.color-scrollbar-container {
+	position: relative;
+	height: 15px;  /* Increased height for better clickability */
+	width: calc(100% - 80px);
+	margin: 5px auto 10px;
+	background: transparent;
+	cursor: pointer;
+	padding: 5px 0;  /* Added padding to center the track */
+}
+
+.color-scrollbar-track {
+	position: absolute;
+	left: 0;
+	top: 5px;  /* Centered in container */
+	width: 100%;
+	height: 5px;
+	background-color: #ffffff;
+	border-radius: 2.5px;
+}
+
+.color-scrollbar-thumb {
+	position: absolute;
+	left: 0;
+	top: 5px;  /* Centered in container */
+	height: 5px;
+	background-color: #DB804A;
+	border-radius: 2.5px;
+	transition: width 0.1s ease, left 0.1s ease;
+}
+
 .collection-nav-arrow svg {
   color: white;
 }
