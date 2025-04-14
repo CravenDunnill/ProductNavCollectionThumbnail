@@ -66,9 +66,9 @@ if ($collectionName && !empty($displayProducts)):
 <tr>
 <td style="width:100% !important; padding:0 !important; margin:0 !important;">
 
-<div id="product-collection-navigation" class="product-collection-navigation" style="width:100% !important; max-width:100% !important; box-sizing:border-box !important; margin:0 !important; padding:0 !important; overflow:hidden !important;">
+<div id="product-collection-navigation" class="product-collection-navigation">
 	<div class="collection-title">
-		<h3><b>Colours</b> (12 options)</h3>
+		<h3><b>Colours</b> (<?= count($productsByColor) ?> options)</h3>
 	</div>
 	
 	<!-- Colour options row - moved the label below the carousel -->
@@ -130,13 +130,6 @@ if ($collectionName && !empty($displayProducts)):
 		</div>
 	</div>
 	
-	<!-- Moved the color label to here, after the carousel -->
-	<div class="collection-row-label">Select Colour: <?php 
-		if ($currentColorId && isset($productsByColor[$currentColorId])) {
-			echo $block->escapeHtml($productsByColor[$currentColorId]['colorName']);
-		}
-	?></div>
-	
 	<!-- Select Size Button - updated to show count with bold sizes -->
 	<div class="collection-size-selector" style="width:100% !important; max-width:100% !important; box-sizing:border-box !important;">
 		<button type="button" id="toggle-size-table-btn" class="action primary" style="width:100% !important; max-width:100% !important;">
@@ -157,16 +150,6 @@ if ($collectionName && !empty($displayProducts)):
 				?>
 			</span>
 		</button>
-		<?php if ($currentProduct): ?>
-			<?php 
-			$currentSizeId = $currentProduct->getTileSize();
-			if ($currentSizeId): 
-			?>
-			<span class="current-size-display">
-				Current Size: <?= $block->escapeHtml($block->getAttributeOptionText('tile_size', $currentSizeId)) ?>
-			</span>
-			<?php endif; ?>
-		<?php endif; ?>
 	</div>
 	
 	<!-- Size table container - initially hidden but with explicit height to ensure it can be displayed -->

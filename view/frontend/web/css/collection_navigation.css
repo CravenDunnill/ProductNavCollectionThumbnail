@@ -18,23 +18,6 @@
 }
 
 
-
-
-/* Main container - force it to match parent width */
-.product-collection-navigation {
-	width: 100% !important;
-	max-width: 100% !important;
-	margin-left: 0 !important;
-	margin-right: 0 !important;
-	padding-left: 0 !important;
-	padding-right: 0 !important;
-	box-sizing: border-box !important;
-	position: relative !important;
-	display: block !important;
-	margin-bottom: 30px !important;
-}
-
-
 /* Carousel container with arrows - ensure it respects parent width */
 .collection-products-container {
 	position: relative !important;
@@ -268,15 +251,6 @@
 	color: #333333;
 }
 
-/* Display current size below the button */
-.current-size-display {
-	display: block;
-	margin-top: 10px;
-	margin-left: 0;
-	font-size: 14px;
-	color: #636363;
-}
-
 /* Sizes table styles */
 .collection-sizes-table-container {
 	width: 100% !important;
@@ -343,13 +317,7 @@
 }
 
 /* Thumbnail badge styling */
-.thumbnail-wrapper {
-	position: relative;
-	display: inline-block;
-	width: 70px;
-	height: 70px;
-	overflow: hidden; /* Ensure any overflowing parts of the image are hidden */
-}
+.thumbnail-wrapper {}
 
 .size-count-badge {
 	position: absolute;
