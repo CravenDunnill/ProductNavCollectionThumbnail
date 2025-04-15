@@ -1,11 +1,10 @@
 /* Update PRODUCT PAGE */
-
 .product-collection-navigation,
 .tile-calculator-container {
 	background-color: #ECEAE4;
 	color: #122C58;
 	border-radius: 6px;
-	padding: 15px;
+	padding: 10px 15px;
 }
 
 .product-collection-navigation h3,
@@ -25,9 +24,12 @@
 	max-width: 100% !important;
 	display: flex !important;
 	align-items: center !important;
-	margin-bottom: 15px !important;
 	box-sizing: border-box !important;
 	overflow: hidden !important;
+}
+
+.product-collection-sizes-section {
+	margin-top: 15px;
 }
 
 /* Scrollable product carousel - ensure proper width calculations */
@@ -167,12 +169,12 @@
 /* Custom scrollbar for color slider */
 .color-scrollbar-container {
 	position: relative;
-	height: 15px;  /* Increased height for better clickability */
+	height: 15px;
 	width: calc(100% - 80px);
-	margin: 5px auto 10px;
+	margin: 5px auto 0;
 	background: transparent;
 	cursor: pointer;
-	padding: 5px 0;  /* Added padding to center the track */
+	padding: 5px 0;
 	transition: width 0.3s ease;
 }
 

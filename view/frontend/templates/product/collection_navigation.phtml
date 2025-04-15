@@ -160,7 +160,7 @@ if ($block->isCurrentProductConfigurable()): ?>
 	</div>
 	<!-- End Colours Section -->
 	
-	<!-- Begin Sizes Section - Hide when only 1 size -->
+	<!-- Begin Sizes Section - Server-side check to hide when only 1 size initially -->
 	<div class="product-collection-sizes-section" <?= $sizeCount <= 1 ? 'style="display: none;"' : '' ?>>
 		<!-- Size options heading - similar to collection title -->
 		<div class="collection-title size-title">
@@ -390,8 +390,16 @@ document.addEventListener('DOMContentLoaded', function() {
 			// We keep this just to update the UI when a color is clicked but not navigated to
 			// (e.g., if user clicks but holds Ctrl to open in new tab)
 			selector.addEventListener('click', function(e) {
-				// Don't use preventDefault() as we want the link to navigate normally
+				// Check if this is a modified click (Ctrl/Cmd key or middle button) 
+				// which will open in new tab rather than navigate
+				const isModifiedClick = e.ctrlKey || e.metaKey || e.which === 2;
 				
+				// If it's a regular click that will navigate away, don't update the UI
+				if (!isModifiedClick) {
+					return; // Let the browser handle the navigation without UI updates
+				}
+				
+				// This only runs for modified clicks that won't navigate away from the current page
 				const colorId = this.getAttribute('data-color-id');
 				
 				// Update current color
@@ -403,8 +411,7 @@ document.addEventListener('DOMContentLoaded', function() {
 				});
 				this.closest('.color-item').classList.add('current-product');
 				
-				// Update size table, heading, and section visibility in case the link is opened in a new tab
-				// and the current page remains
+				// Update size table, heading, and section visibility
 				updateSizeTable(colorId);
 				updateSizeSection();
 			});
