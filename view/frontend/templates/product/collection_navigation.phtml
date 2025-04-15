@@ -270,6 +270,17 @@ if ($block->isCurrentProductConfigurable()): ?>
 
 <script type="text/javascript">
 document.addEventListener('DOMContentLoaded', function() {
+	// Add CSS for disabled state to the document
+	const style = document.createElement('style');
+	style.textContent = `
+		.collection-nav-arrow.disabled {
+			background-color: #E0E0E0 !important;
+			opacity: 0.7 !important;
+			cursor: default !important;
+		}
+	`;
+	document.head.appendChild(style);
+	
 	// Get the elements
 	const colorSlider = document.getElementById('color-slider');
 	const colorPrevBtn = document.getElementById('color-scroll-prev');
@@ -279,9 +290,9 @@ document.addEventListener('DOMContentLoaded', function() {
 	const sizeTableContainer = document.getElementById('size-table-container');
 	const sizesTable = document.getElementById('sizes-table');
 	
-	// Set initial state of arrows (hidden by default until we check if needed)
-	colorPrevBtn.style.display = 'none';
-	colorNextBtn.style.display = 'none';
+	// Initial hide - we'll show them if scrolling is needed
+	colorPrevBtn.style.cssText = "display: none !important;";
+	colorNextBtn.style.cssText = "display: none !important;";
 	
 	// Update button text when color changes - UPDATED for bold size text
 	function updateSizeButtonText() {
@@ -465,61 +476,95 @@ document.addEventListener('DOMContentLoaded', function() {
 		updateSliderButtonStates(colorSlider, colorPrevBtn, colorNextBtn);
 	}
 	
+	// IMPROVED: Show both arrows when scrolling is needed, with visual cues for disabled state
 	function updateSliderButtonStates(slider, prevBtn, nextBtn) {
-		// Check if scrolling is possible at all
-		const scrollableWidth = slider.scrollWidth;
-		const containerWidth = slider.clientWidth;
-		const canScroll = scrollableWidth > containerWidth + 2; // Add small buffer for rounding errors
+		// Force a layout calculation
+		void slider.offsetWidth;
+		
+		// Check if scrolling is possible with a much larger buffer for reliability
+		const scrollableWidth = Math.ceil(slider.scrollWidth);
+		const containerWidth = Math.floor(slider.clientWidth);
+		
+		// Much larger buffer (20px) and double-check calculation
+		const canScroll = (scrollableWidth > containerWidth + 20) && 
+						 (slider.scrollWidth > slider.offsetWidth + 10);
+		
 		const scrollbarContainer = document.querySelector('.color-scrollbar-container');
 		
 		// Hide both arrows and adjust container when no scrolling is needed
 		if (!canScroll) {
-			prevBtn.style.display = 'none';
-			nextBtn.style.display = 'none';
-			slider.style.width = '100%';
-			slider.style.maxWidth = '100%';
-			slider.style.marginLeft = '0';
-			slider.style.marginRight = '0';
+			// Use !important to ensure display:none takes precedence
+			prevBtn.style.cssText = "display: none !important;";
+			nextBtn.style.cssText = "display: none !important;";
 			
-			// Also adjust scrollbar width to match
+			// Zero any margins that might affect calculations
+			slider.style.cssText = "width: 100% !important; max-width: 100% !important; margin-left: 0 !important; margin-right: 0 !important;";
+			
+			// Also hide scrollbar completely
 			if (scrollbarContainer) {
-				scrollbarContainer.style.width = '100%';
+				scrollbarContainer.style.cssText = "display: none !important;";
 			}
 			return;
-		} else {
-			// Reset slider width when arrows are needed
-			slider.style.width = 'calc(100% - 70px)';
-			slider.style.maxWidth = 'calc(100% - 70px)';
-			slider.style.marginLeft = '';
-			slider.style.marginRight = '';
-			
-			// Reset scrollbar width to match
-			if (scrollbarContainer) {
-				scrollbarContainer.style.width = 'calc(100% - 80px)';
-			}
+		} 
+		
+		// Scrolling is needed - show both arrows but with visual indication of availability
+		prevBtn.style.cssText = "display: flex !important;";
+		nextBtn.style.cssText = "display: flex !important;";
+		slider.style.cssText = "width: calc(100% - 70px) !important; max-width: calc(100% - 70px) !important;";
+		
+		if (scrollbarContainer) {
+			scrollbarContainer.style.cssText = "display: block; width: calc(100% - 80px);";
 		}
 		
-		// Show/hide based on scroll position
+		// Disable left arrow if at start (but still show it with different style)
 		if (slider.scrollLeft <= 0) {
-			prevBtn.style.display = 'none';
-			// Give extra space to slider from left
-			slider.style.marginLeft = '0';
-			slider.style.width = 'calc(100% - 40px)';
-			slider.style.maxWidth = 'calc(100% - 40px)';
+			prevBtn.style.cssText = "display: flex !important; background-color: #E0E0E0 !important; opacity: 0.7 !important; cursor: default !important;";
+			prevBtn.classList.add('disabled');
 		} else {
-			prevBtn.style.display = 'flex';
-			slider.style.marginLeft = '';
+			prevBtn.style.cssText = "display: flex !important; background-color: #0B1215 !important; opacity: 1 !important; cursor: pointer !important;";
+			prevBtn.classList.remove('disabled');
 		}
 		
+		// Disable right arrow if at end (but still show it with different style)
 		if (slider.scrollLeft + slider.clientWidth >= slider.scrollWidth - 5) {
-			nextBtn.style.display = 'none';
-			// Give extra space to slider from right if left arrow is showing
-			if (prevBtn.style.display === 'flex') {
-				slider.style.width = 'calc(100% - 40px)';
-				slider.style.maxWidth = 'calc(100% - 40px)';
+			nextBtn.style.cssText = "display: flex !important; background-color: #E0E0E0 !important; opacity: 0.7 !important; cursor: default !important;";
+			nextBtn.classList.add('disabled');
+		} else {
+			nextBtn.style.cssText = "display: flex !important; background-color: #0B1215 !important; opacity: 1 !important; cursor: pointer !important;";
+			nextBtn.classList.remove('disabled');
+		}
+	}
+	
+	// Direct calculation of items width vs container width
+	function forceCheckArrowVisibility() {
+		const slider = document.getElementById('color-slider');
+		const prevBtn = document.getElementById('color-scroll-prev');
+		const nextBtn = document.getElementById('color-scroll-next');
+		
+		if (!slider || !prevBtn || !nextBtn) return;
+		
+		// Get all color items
+		const colorItems = slider.querySelectorAll('.color-item');
+		const totalWidth = Array.from(colorItems).reduce((sum, item) => sum + item.offsetWidth + 5, 0); // 5px for gap
+		
+		// If total width of all items is less than slider width, hide arrows
+		if (totalWidth <= slider.clientWidth) {
+			prevBtn.style.cssText = "display: none !important;";
+			nextBtn.style.cssText = "display: none !important;";
+			slider.style.cssText = "width: 100% !important; max-width: 100% !important; margin: 0 !important;";
+			
+			const scrollbarContainer = document.querySelector('.color-scrollbar-container');
+			if (scrollbarContainer) {
+				scrollbarContainer.style.cssText = "display: none !important;";
 			}
 		} else {
-			nextBtn.style.display = 'flex';
+			// Show both arrows since scrolling is needed, then style them appropriately
+			prevBtn.style.cssText = "display: flex !important;";
+			nextBtn.style.cssText = "display: flex !important;";
+			slider.style.cssText = "width: calc(100% - 70px) !important; max-width: calc(100% - 70px) !important;";
+			
+			// Then call normal update to style them appropriately
+			updateButtonStates();
 		}
 	}
 	
@@ -549,7 +594,7 @@ document.addEventListener('DOMContentLoaded', function() {
 		const scrollableWidth = colorSlider.scrollWidth - colorSlider.clientWidth;
 		if (scrollableWidth <= 0) {
 			// If no scrolling is needed, hide the scrollbar container
-			scrollbarContainer.style.display = 'none';
+			scrollbarContainer.style.cssText = "display: none !important;";
 			return;
 		}
 		
@@ -659,9 +704,15 @@ document.addEventListener('DOMContentLoaded', function() {
 	setupSlider(colorSlider, colorPrevBtn, colorNextBtn);
 	
 	function setupSlider(slider, prevBtn, nextBtn) {
-		// Scroll left button click
+		// Scroll left button click - check for disabled state
 		prevBtn.addEventListener('click', function(e) {
 			e.preventDefault();
+			
+			// Don't do anything if the button is disabled (at start of scroll)
+			if (this.classList.contains('disabled')) {
+				return;
+			}
+			
 			slider.scrollBy({
 				left: -200, // Scroll distance
 				behavior: 'smooth'
@@ -672,9 +723,15 @@ document.addEventListener('DOMContentLoaded', function() {
 			}, 100); // Update after scroll animation
 		});
 		
-		// Scroll right button click
+		// Scroll right button click - check for disabled state
 		nextBtn.addEventListener('click', function(e) {
 			e.preventDefault();
+			
+			// Don't do anything if the button is disabled (at end of scroll)
+			if (this.classList.contains('disabled')) {
+				return;
+			}
+			
 			slider.scrollBy({
 				left: 200, // Scroll distance
 				behavior: 'smooth'
@@ -727,22 +784,68 @@ document.addEventListener('DOMContentLoaded', function() {
 		});
 	}
 	
+	// Function to ensure all images are loaded before checking arrow visibility
+	function checkImagesAndUpdateArrows() {
+		const allImages = document.querySelectorAll('.collection-product-image');
+		let imagesLoaded = 0;
+		const totalImages = allImages.length;
+		
+		// If no images, just update
+		if (totalImages === 0) {
+			forceCheckArrowVisibility();
+			return;
+		}
+		
+		// Check each image
+		allImages.forEach(img => {
+			if (img.complete) {
+				imagesLoaded++;
+				if (imagesLoaded === totalImages) {
+					// All images loaded, update arrows
+					forceCheckArrowVisibility();
+				}
+			} else {
+				img.addEventListener('load', function() {
+					imagesLoaded++;
+					if (imagesLoaded === totalImages) {
+						// All images loaded, update arrows
+						forceCheckArrowVisibility();
+					}
+				});
+			}
+		});
+		
+		// Also set a timeout as a fallback
+		setTimeout(forceCheckArrowVisibility, 500);
+	}
+	
 	// Initialize functionality
 	initColorSelectors();
-	updateButtonStates();
+	forceCheckArrowVisibility(); // Use our more direct check
 	centerCurrentColor();
 	updateScrollbarThumb(); // Initialize scrollbar position
 	setupScrollbarInteraction(); // Setup scrollbar interaction (click and drag)
 	
+	// Check multiple times with increasing delays to catch any rendering issues
+	setTimeout(forceCheckArrowVisibility, 100);
+	setTimeout(forceCheckArrowVisibility, 300);
+	setTimeout(forceCheckArrowVisibility, 500);
+	setTimeout(forceCheckArrowVisibility, 1000);
+	
+	// Check if images are loaded before final arrow visibility decision
+	checkImagesAndUpdateArrows();
+	
 	// Initialize button text with size count
 	updateSizeButtonText();
 	
+	// Update resize handler to use our more aggressive check
 	window.addEventListener('resize', function() {
-		updateButtonStates();
-		updateScrollbarThumb();
+		forceCheckArrowVisibility();
+		// Double check after a small delay in case of slow reflow
+		setTimeout(forceCheckArrowVisibility, 100);
 	});
 	
-	// CONTINUOUS WIDTH ENFORCEMENT - Check every 100ms to ensure width constraints are maintained
+	// UPDATED: More aggressive interval check
 	setInterval(function() {
 		// Get the carousel container and all its child components
 		const carousel = document.querySelector('.product-collection-navigation');
@@ -765,11 +868,8 @@ document.addEventListener('DOMContentLoaded', function() {
 			container.style.maxWidth = '100%';
 		});
 		
-		// Special handling for the carousel itself - don't override our dynamic sizing
-		const productsSlider = carousel.querySelector('.collection-products');
-		if (productsSlider && !productsSlider.style.width.includes('%')) {
-			updateButtonStates(); // Re-check if arrows are needed
-		}
+		// Force check arrow visibility
+		forceCheckArrowVisibility();
 	}, 100);
 });
 </script>
