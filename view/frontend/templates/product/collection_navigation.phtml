@@ -87,154 +87,162 @@ if ($block->isCurrentProductConfigurable()): ?>
 <?php endif; ?>
 
 <div id="product-collection-navigation" class="product-collection-navigation">
-	<div class="collection-title">
-		<h3><b>Colours</b> (<?= count($productsByColor) ?> options)</h3>
-	</div>
-	
-	<!-- Colour options row - moved the label below the carousel -->
-	<div class="collection-products-container" style="width:100% !important; max-width:100% !important; box-sizing:border-box !important;">
-		<div class="collection-nav-arrow prev" id="color-scroll-prev">
-			<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-				<path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"/>
-			</svg>
+	<!-- Begin Colours Section -->
+	<div class="product-collection-colours-section">
+		<div class="collection-title">
+			<h3><b>Colours</b> (<?= count($productsByColor) ?> options)</h3>
 		</div>
 		
-		<div class="collection-products color-options" id="color-slider" style="width:calc(100% - 70px) !important; max-width:calc(100% - 70px) !important; box-sizing:border-box !important;">
-			<?php foreach ($productsByColor as $colorId => $colorGroup): ?>
-				<?php 
-				$isCurrentColor = ($colorId == $currentColorId);
-				$firstProduct = reset($colorGroup['products']);
-				
-				// Count unique sizes for this color
-				$uniqueSizes = [];
-				$sizeProducts = [];
-				foreach ($colorGroup['products'] as $product) {
-					$sizeId = $product->getTileSize();
-					if (!isset($uniqueSizes[$sizeId])) {
-						$uniqueSizes[$sizeId] = true;
-						$sizeProducts[$sizeId] = $product;
-					}
-				}
-				$sizeCount = count($uniqueSizes);
-				
-				// Get the smallest size product
-				$smallestSizeProduct = $firstProduct;
-				if (count($sizeProducts) > 0) {
-					ksort($sizeProducts);
-					$smallestSizeProduct = reset($sizeProducts);
-				}
-				$productUrl = $smallestSizeProduct->getProductUrl();
-				?>
-				<div class="collection-product-item color-item <?= $isCurrentColor ? 'current-product' : '' ?>" 
-					 data-color-id="<?= $block->escapeHtmlAttr($colorId) ?>">
-					<a href="<?= $block->escapeUrl($productUrl) ?>" class="color-selector" 
-					   data-color-id="<?= $block->escapeHtmlAttr($colorId) ?>">
-						<div class="thumbnail-wrapper">
-							<img src="<?= $block->escapeUrl($block->getProductImageUrl($firstProduct)) ?>" 
-								 alt="<?= $block->escapeHtmlAttr($colorGroup['colorName']) ?>"
-								 class="collection-product-image" 
-								 title="<?= $block->escapeHtmlAttr($colorGroup['colorName']) ?>" />
-							<?php if ($sizeCount > 1): ?>
-								<span class="size-count-badge"><?= $sizeCount ?> sizes</span>
-							<?php endif; ?>
-						</div>
-					</a>
-				</div>
-			<?php endforeach; ?>
-		</div>
-		
-		<div class="collection-nav-arrow next" id="color-scroll-next">
-			<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-				<path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z"/>
-			</svg>
-		</div>
-	</div>
-	
-	<!-- Custom scroll bar for color slider -->
-	<div class="color-scrollbar-container">
-		<div class="color-scrollbar-track"></div>
-		<div class="color-scrollbar-thumb"></div>
-	</div>
-	
-	<!-- Size options heading - similar to collection title -->
-	<div class="collection-title size-title">
-		<h3><b><?= $sizeCount == 1 ? 'Size' : 'Sizes' ?></b> (<?= $sizeCount ?> <?= $sizeCount == 1 ? 'option' : 'options' ?>)</h3>
-	</div>
-	
-	<!-- Select Size Button - updated to show count with bold sizes -->
-	<div class="collection-size-selector" style="width:100% !important; max-width:100% !important; box-sizing:border-box !important;">
-		<button type="button" id="toggle-size-table-btn" class="action primary" style="width:100% !important; max-width:100% !important;">
-			<span>
-				<?php
-				echo 'Choose from <span class="size-count">' . $sizeCount . ' size' . ($sizeCount == 1 ? '' : 's') . '</span>';
-				?>
-			</span>
-		</button>
-	</div>
-	
-	<!-- Size table container - initially hidden but with explicit height to ensure it can be displayed -->
-	<div id="size-table-container" style="display: none; margin-top: 20px; width:100% !important; max-width:100% !important; box-sizing:border-box !important;">
-		<h3>Available Sizes</h3>
-		<div class="collection-sizes-table-container" style="overflow: visible; width:100% !important; max-width:100% !important; box-sizing:border-box !important;">
-			<table class="collection-sizes-table" id="sizes-table" style="width: 100% !important; max-width:100% !important;">
-				<thead>
-					<tr>
-						<th>Size (mm)</th>
-						<th>Price per tile</th>
-						<th>Price per m²</th>
-					</tr>
-				</thead>
-				<tbody>
+		<!-- Colour options row - moved the label below the carousel -->
+		<div class="collection-products-container" style="width:100% !important; max-width:100% !important; box-sizing:border-box !important;">
+			<div class="collection-nav-arrow prev" id="color-scroll-prev">
+				<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+					<path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"/>
+				</svg>
+			</div>
+			
+			<div class="collection-products color-options" id="color-slider" style="width:calc(100% - 70px) !important; max-width:calc(100% - 70px) !important; box-sizing:border-box !important;">
+				<?php foreach ($productsByColor as $colorId => $colorGroup): ?>
 					<?php 
-					// Start with the sizes for the current color
-					$sizesToShow = [];
-					if ($currentColorId && isset($productsByColor[$currentColorId])) {
-						$sizesToShow = $productsByColor[$currentColorId]['products'];
-					} elseif (!empty($productsByColor)) {
-						// If no current color, show sizes for the first color
-						$firstColor = reset($productsByColor);
-						$sizesToShow = $firstColor['products'];
-						$currentColorId = key($productsByColor);
+					$isCurrentColor = ($colorId == $currentColorId);
+					$firstProduct = reset($colorGroup['products']);
+					
+					// Count unique sizes for this color
+					$uniqueSizes = [];
+					$sizeProducts = [];
+					foreach ($colorGroup['products'] as $product) {
+						$sizeId = $product->getTileSize();
+						if (!isset($uniqueSizes[$sizeId])) {
+							$uniqueSizes[$sizeId] = true;
+							$sizeProducts[$sizeId] = $product;
+						}
 					}
+					$sizeCount = count($uniqueSizes);
 					
-					// Sort by size
-					usort($sizesToShow, function($a, $b) use ($block) {
-						$sizeA = $a->getTileSize();
-						$sizeB = $b->getTileSize();
-						return strcmp($sizeA, $sizeB);
-					});
-					
-					foreach ($sizesToShow as $product):
-						$isCurrent = $product->getId() == $currentProduct->getId();
-						$tileSize = $block->getAttributeOptionText('tile_size', $product->getTileSize());
-						
-						// Get price information
-						$price = $product->getPriceInfo()->getPrice('final_price')->getValue();
-						$pricePerM2 = $product->getData('price_m2');
-						$productUrl = $product->getProductUrl();
+					// Get the smallest size product
+					$smallestSizeProduct = $firstProduct;
+					if (count($sizeProducts) > 0) {
+						ksort($sizeProducts);
+						$smallestSizeProduct = reset($sizeProducts);
+					}
+					$productUrl = $smallestSizeProduct->getProductUrl();
 					?>
-						<tr class="size-row <?= $isCurrent ? 'current-product' : '' ?>">
-							<td class="size-cell">
-								<a href="<?= $block->escapeUrl($productUrl) ?>" class="size-link">
-									<?= $block->escapeHtml($tileSize) ?>
-								</a>
-							</td>
-							<td class="price-cell">
-								<a href="<?= $block->escapeUrl($productUrl) ?>" class="size-link">
-									<?= $block->escapeHtml($block->getFormattedPrice($price)) ?>
-								</a>
-							</td>
-							<td class="price-m2-cell">
-								<a href="<?= $block->escapeUrl($productUrl) ?>" class="size-link">
-									<?= $block->escapeHtml($block->getFormattedPrice($pricePerM2)) ?>
-								</a>
-							</td>
-						</tr>
-					<?php endforeach; ?>
-				</tbody>
-			</table>
+					<div class="collection-product-item color-item <?= $isCurrentColor ? 'current-product' : '' ?>" 
+						 data-color-id="<?= $block->escapeHtmlAttr($colorId) ?>">
+						<a href="<?= $block->escapeUrl($productUrl) ?>" class="color-selector" 
+						   data-color-id="<?= $block->escapeHtmlAttr($colorId) ?>">
+							<div class="thumbnail-wrapper">
+								<img src="<?= $block->escapeUrl($block->getProductImageUrl($firstProduct)) ?>" 
+									 alt="<?= $block->escapeHtmlAttr($colorGroup['colorName']) ?>"
+									 class="collection-product-image" 
+									 title="<?= $block->escapeHtmlAttr($colorGroup['colorName']) ?>" />
+								<?php if ($sizeCount > 1): ?>
+									<span class="size-count-badge"><?= $sizeCount ?> sizes</span>
+								<?php endif; ?>
+							</div>
+						</a>
+					</div>
+				<?php endforeach; ?>
+			</div>
+			
+			<div class="collection-nav-arrow next" id="color-scroll-next">
+				<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+					<path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z"/>
+				</svg>
+			</div>
+		</div>
+		
+		<!-- Custom scroll bar for color slider -->
+		<div class="color-scrollbar-container">
+			<div class="color-scrollbar-track"></div>
+			<div class="color-scrollbar-thumb"></div>
 		</div>
 	</div>
+	<!-- End Colours Section -->
+	
+	<!-- Begin Sizes Section - Hide when only 1 size -->
+	<div class="product-collection-sizes-section" <?= $sizeCount <= 1 ? 'style="display: none;"' : '' ?>>
+		<!-- Size options heading - similar to collection title -->
+		<div class="collection-title size-title">
+			<h3><b><?= $sizeCount == 1 ? 'Size' : 'Sizes' ?></b> (<?= $sizeCount ?> <?= $sizeCount == 1 ? 'option' : 'options' ?>)</h3>
+		</div>
+		
+		<!-- Select Size Button - updated to show count with bold sizes -->
+		<div class="collection-size-selector" style="width:100% !important; max-width:100% !important; box-sizing:border-box !important;">
+			<button type="button" id="toggle-size-table-btn" class="action primary" style="width:100% !important; max-width:100% !important;">
+				<span>
+					<?php
+					echo 'Choose from <span class="size-count">' . $sizeCount . ' size' . ($sizeCount == 1 ? '' : 's') . '</span>';
+					?>
+				</span>
+			</button>
+		</div>
+		
+		<!-- Size table container - initially hidden but with explicit height to ensure it can be displayed -->
+		<div id="size-table-container" style="display: none; margin-top: 20px; width:100% !important; max-width:100% !important; box-sizing:border-box !important;">
+			<h3>Available Sizes</h3>
+			<div class="collection-sizes-table-container" style="overflow: visible; width:100% !important; max-width:100% !important; box-sizing:border-box !important;">
+				<table class="collection-sizes-table" id="sizes-table" style="width: 100% !important; max-width:100% !important;">
+					<thead>
+						<tr>
+							<th>Size (mm)</th>
+							<th>Price per tile</th>
+							<th>Price per m²</th>
+						</tr>
+					</thead>
+					<tbody>
+						<?php 
+						// Start with the sizes for the current color
+						$sizesToShow = [];
+						if ($currentColorId && isset($productsByColor[$currentColorId])) {
+							$sizesToShow = $productsByColor[$currentColorId]['products'];
+						} elseif (!empty($productsByColor)) {
+							// If no current color, show sizes for the first color
+							$firstColor = reset($productsByColor);
+							$sizesToShow = $firstColor['products'];
+							$currentColorId = key($productsByColor);
+						}
+						
+						// Sort by size
+						usort($sizesToShow, function($a, $b) use ($block) {
+							$sizeA = $a->getTileSize();
+							$sizeB = $b->getTileSize();
+							return strcmp($sizeA, $sizeB);
+						});
+						
+						foreach ($sizesToShow as $product):
+							$isCurrent = $product->getId() == $currentProduct->getId();
+							$tileSize = $block->getAttributeOptionText('tile_size', $product->getTileSize());
+							
+							// Get price information
+							$price = $product->getPriceInfo()->getPrice('final_price')->getValue();
+							$pricePerM2 = $product->getData('price_m2');
+							$productUrl = $product->getProductUrl();
+						?>
+							<tr class="size-row <?= $isCurrent ? 'current-product' : '' ?>">
+								<td class="size-cell">
+									<a href="<?= $block->escapeUrl($productUrl) ?>" class="size-link">
+										<?= $block->escapeHtml($tileSize) ?>
+									</a>
+								</td>
+								<td class="price-cell">
+									<a href="<?= $block->escapeUrl($productUrl) ?>" class="size-link">
+										<?= $block->escapeHtml($block->getFormattedPrice($price)) ?>
+									</a>
+								</td>
+								<td class="price-m2-cell">
+									<a href="<?= $block->escapeUrl($productUrl) ?>" class="size-link">
+										<?= $block->escapeHtml($block->getFormattedPrice($pricePerM2)) ?>
+									</a>
+								</td>
+							</tr>
+						<?php endforeach; ?>
+					</tbody>
+				</table>
+			</div>
+		</div>
+	</div>
+	<!-- End Sizes Section -->
 </div><!-- End of product-collection-navigation div -->
 
 </td>
@@ -294,8 +302,8 @@ document.addEventListener('DOMContentLoaded', function() {
 	colorPrevBtn.style.cssText = "display: none !important;";
 	colorNextBtn.style.cssText = "display: none !important;";
 	
-	// Update button text when color changes - UPDATED for bold size text
-	function updateSizeButtonText() {
+	// Update size section when color changes - including heading and visibility
+	function updateSizeSection() {
 		// Get the current color ID
 		const currentColorId = dataContainer.getAttribute('data-current-color');
 		
@@ -311,7 +319,19 @@ document.addEventListener('DOMContentLoaded', function() {
 			
 			const sizeCount = uniqueSizes.size;
 			
-			// Use HTML with span to make size count bold
+			// Update sizes section heading
+			const sizeTitle = document.querySelector('.size-title h3');
+			if (sizeTitle) {
+				sizeTitle.innerHTML = `<b>${sizeCount == 1 ? 'Size' : 'Sizes'}</b> (${sizeCount} ${sizeCount == 1 ? 'option' : 'options'})`;
+			}
+			
+			// Show/hide sizes section based on size count
+			const sizesSection = document.querySelector('.product-collection-sizes-section');
+			if (sizesSection) {
+				sizesSection.style.display = sizeCount <= 1 ? 'none' : 'block';
+			}
+			
+			// Use HTML with span to make size count bold in button
 			if (toggleSizeBtn && !toggleSizeBtn.classList.contains('active')) {
 				toggleSizeBtn.querySelector('span').innerHTML = `Choose from <span class="size-count">${sizeCount} size${sizeCount === 1 ? '' : 's'}</span>`;
 			}
@@ -339,7 +359,7 @@ document.addEventListener('DOMContentLoaded', function() {
 			sizeTableContainer.style.display = 'none';
 			
 			// Update button text to show number of options
-			updateSizeButtonText();
+			updateSizeSection();
 			
 			toggleSizeBtn.classList.remove('active');
 		}
@@ -383,10 +403,10 @@ document.addEventListener('DOMContentLoaded', function() {
 				});
 				this.closest('.color-item').classList.add('current-product');
 				
-				// Update size table and button text in case the link is opened in a new tab
+				// Update size table, heading, and section visibility in case the link is opened in a new tab
 				// and the current page remains
 				updateSizeTable(colorId);
-				updateSizeButtonText();
+				updateSizeSection();
 			});
 		});
 	}
@@ -835,8 +855,8 @@ document.addEventListener('DOMContentLoaded', function() {
 	// Check if images are loaded before final arrow visibility decision
 	checkImagesAndUpdateArrows();
 	
-	// Initialize button text with size count
-	updateSizeButtonText();
+	// Initialize size section, heading, and button text
+	updateSizeSection();
 	
 	// Update resize handler to use our more aggressive check
 	window.addEventListener('resize', function() {
