@@ -72,7 +72,24 @@ if ($currentColorId && isset($productsByColor[$currentColorId])) {
 $sizeCount = count($uniqueSizes);
 
 if ($collectionName && !empty($displayProducts)):
-?>
+	// Find the cheapest product by price_m2
+	$lowestPrice = null;
+	foreach ($displayProducts as $product) {
+		$pricePerM2 = $product->getData('price_m2');
+		if ($lowestPrice === null || ($pricePerM2 && $pricePerM2 < $lowestPrice)) {
+			$lowestPrice = $pricePerM2;
+		}
+	}
+	
+	// Show pricing for configurable products only
+	if ($block->isCurrentProductConfigurable() && $lowestPrice !== null):
+	?>
+	<div class="product-prices-from" style="display: flex; justify-content: center; font-weight: 100; font-size: 1.2rem; margin: 1rem 0 1.5rem 0; color: #122C58;">
+		<div>
+			<span><i>from</i> <?= $block->getFormattedPrice(number_format($lowestPrice, 2, '.', '')) ?> /m<sup>2</sup></span>
+		</div>
+	</div>
+	<?php endif; ?>
 <!-- Drastic solution: Force width containment with a table layout -->
 <table width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100% !important; max-width:100% !important; table-layout:fixed !important; margin:0 !important; padding:0 !important;">
 <tr>
