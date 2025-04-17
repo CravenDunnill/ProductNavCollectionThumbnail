@@ -16,6 +16,37 @@
 	color: #122C58;
 }
 
+/* Pricing display for products */
+.product-prices-from,
+.product-prices-simple {
+	display: flex;
+	justify-content: center;
+	font-weight: 100;
+	font-size: 1.4rem;
+	margin: 1rem 0 1.5rem 0;
+}
+
+.product-prices-from i {
+	margin-right: 0.3rem;
+}
+
+/* Only show "from" pricing on configurable products */
+.configurable-product .product-prices-from {
+	display: flex;
+}
+
+.configurable-product .product-prices-simple {
+	display: none;
+}
+
+/* Only show simple pricing on simple products */
+.product-prices-from {
+	display: none;
+}
+
+.product-prices-simple {
+	display: flex;
+}
 
 /* Carousel container with arrows - ensure it respects parent width */
 .collection-products-container {
