@@ -416,7 +416,7 @@
 	left: 0;
 	right: 0;
 	color: #FFFFFF;
-	font-size: 12px;
+	font-size: 12px !important;
 	font-weight: 200;
 	text-align: center;
 	border-bottom-left-radius: 3px;

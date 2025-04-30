@@ -87,7 +87,7 @@ if ($collectionName && !empty($displayProducts)):
 		?>
 		<div class="product-prices-from" style="display: flex; justify-content: center; font-weight: 100; font-size: 1.4rem; margin: 1rem 0 1.5rem 0;">
 			<div>
-				<span><i>from</i> <?= $block->getFormattedPrice(number_format($lowestPrice, 2, '.', '')) ?> /m<sup>2</sup></span>
+				<span><i>from</i> <?= $block->getFormattedPrice(number_format($lowestPrice, 2, '.', '')) ?> per m<sup>2</sup></span>
 			</div>
 		</div>
 		<?php endif;
@@ -99,7 +99,7 @@ if ($collectionName && !empty($displayProducts)):
 		?>
 		<div class="product-prices-simple" style="display: flex; justify-content: center; font-weight: 100; font-size: 1.4rem; margin: 1rem 0 1.5rem 0;">
 			<div>
-				<span><?= $block->getFormattedPrice(number_format($currentPriceM2, 2, '.', '')) ?> /m<sup>2</sup></span>
+				<span><?= $block->getFormattedPrice(number_format($currentPriceM2, 2, '.', '')) ?> per m<sup>2</sup></span>
 			</div>
 		</div>
 		<?php endif;
