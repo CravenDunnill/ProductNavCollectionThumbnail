@@ -11,6 +11,11 @@
 			<argument name="pricingHelper" xsi:type="object">Magento\Framework\Pricing\Helper\Data</argument>
 		</arguments>
 	</type>
+	<type name="CravenDunnill\ProductNavCollectionThumbnail\Controller\Product\CollectionProducts">
+		<arguments>
+			<argument name="pricingHelper" xsi:type="object">Magento\Framework\Pricing\Helper\Data</argument>
+		</arguments>
+	</type>
 	<type name="CravenDunnill\ProductNavCollectionThumbnail\Helper\Data">
 		<arguments>
 			<argument name="eavConfig" xsi:type="object">Magento\Eav\Model\Config</argument>

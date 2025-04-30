@@ -496,16 +496,16 @@ document.addEventListener('DOMContentLoaded', function() {
 			const row = document.createElement('tr');
 			row.className = `size-row ${size.isCurrent ? 'current-product' : ''}`;
 			
-			// Format prices
+			// Format prices - now including VAT by multiplying by 1.2
 			const formattedPrice = new Intl.NumberFormat('en-GB', { 
 				style: 'currency', 
 				currency: 'GBP' 
-			}).format(parseFloat(size.price));
+			}).format(parseFloat(size.price) * 1.2); // Add VAT here
 			
 			const formattedPriceM2 = new Intl.NumberFormat('en-GB', { 
 				style: 'currency', 
 				currency: 'GBP' 
-			}).format(parseFloat(size.priceM2));
+			}).format(parseFloat(size.priceM2) * 1.2); // Add VAT here
 			
 			// Create cells with proper links
 			row.innerHTML = `

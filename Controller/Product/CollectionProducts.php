@@ -8,6 +8,7 @@ use CravenDunnill\ProductNavCollectionThumbnail\Helper\Data;
 use Magento\Catalog\Helper\Image;
 use Magento\Store\Model\StoreManagerInterface;
 use Magento\Catalog\Model\Product\Type;
+use Magento\Framework\Pricing\Helper\Data as PricingHelper;
 
 class CollectionProducts extends Action
 {
@@ -30,6 +31,11 @@ class CollectionProducts extends Action
 	 * @var StoreManagerInterface
 	 */
 	protected $storeManager;
+	
+	/**
+	 * @var PricingHelper
+	 */
+	protected $pricingHelper;
 
 	/**
 	 * CollectionProducts constructor.
@@ -39,18 +45,21 @@ class CollectionProducts extends Action
 	 * @param Data $helper
 	 * @param Image $imageHelper
 	 * @param StoreManagerInterface $storeManager
+	 * @param PricingHelper $pricingHelper
 	 */
 	public function __construct(
 		Context $context,
 		JsonFactory $resultJsonFactory,
 		Data $helper,
 		Image $imageHelper,
-		StoreManagerInterface $storeManager
+		StoreManagerInterface $storeManager,
+		PricingHelper $pricingHelper
 	) {
 		$this->resultJsonFactory = $resultJsonFactory;
 		$this->helper = $helper;
 		$this->imageHelper = $imageHelper;
 		$this->storeManager = $storeManager;
+		$this->pricingHelper = $pricingHelper;
 		parent::__construct($context);
 	}
 
@@ -101,13 +110,29 @@ class CollectionProducts extends Action
 					->getUrl();
 			}
 			
+			// Get the regular price and apply VAT
+			$price = $product->getPriceInfo()->getPrice('final_price')->getValue();
+			$priceWithVat = $price * 1.2;
+			
+			// Get the price_m2 and apply VAT
+			$priceM2 = $product->getData('price_m2');
+			$priceM2WithVat = $priceM2 * 1.2;
+			
+			// Format prices with currency symbol
+			$formattedPrice = $this->pricingHelper->currency($priceWithVat, true, false);
+			$formattedPriceM2 = $this->pricingHelper->currency($priceM2WithVat, true, false);
+			
 			$productData[] = [
 				'id' => $product->getId(),
 				'name' => $product->getName(),
 				'url' => $product->getProductUrl(),
 				'image' => $imageUrl,
 				'color_name' => $product->getTileColourName(),
-				'tile_size' => $product->getTileSize()
+				'tile_size' => $product->getTileSize(),
+				'price' => $priceWithVat,
+				'price_m2' => $priceM2WithVat,
+				'formatted_price' => $formattedPrice,
+				'formatted_price_m2' => $formattedPriceM2
 			];
 		}
 		

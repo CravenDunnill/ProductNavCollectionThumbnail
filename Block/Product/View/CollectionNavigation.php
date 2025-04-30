@@ -297,13 +297,15 @@ class CollectionNavigation extends Template
 	}
 	
 	/**
-	 * Format price with currency symbol
+	 * Format price with currency symbol and VAT included
 	 * 
 	 * @param float $price
 	 * @return string
 	 */
 	public function getFormattedPrice($price)
 	{
-		return $this->pricingHelper->currency($price, true, false);
+		// Multiply by 1.2 to include VAT
+		$priceWithVat = $price * 1.2;
+		return $this->pricingHelper->currency($priceWithVat, true, false);
 	}
 }
